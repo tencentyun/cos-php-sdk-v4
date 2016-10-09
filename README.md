@@ -15,6 +15,9 @@ cos-php-sdk：php sdk for [腾讯云对象存储服务](https://www.qcloud.com/p
 require('cos-php-sdk-v4/include.php');
 use qcloudcos\Cosapi;
 
+// 设置cos所在的区域
+Cosapi::setRegion('gz');
+
 // 创建文件夹
 $ret = Cosapi::createFolder($bucket, $folder);
 var_dump($ret);
