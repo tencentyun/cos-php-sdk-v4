@@ -25,6 +25,7 @@ class Cosapi {
     const COSAPI_NETWORK_ERROR = -2;
 	//HTTP请求超时时间
     private static $timeout = 60;
+    private static $region = 'gz'; // default region is guangzou
 
 	/**
      * 设置HTTP请求超时时间
@@ -37,6 +38,10 @@ class Cosapi {
 
         self::$timeout = $timeout;
         return true;
+    }
+
+    public static function setRegion($region) {
+        self::$region = $region;
     }
 
     /**
@@ -666,7 +671,10 @@ class Cosapi {
      * @param  string  $dstPath
      */
     private static function generateResUrl($bucket, $dstPath) {
-        return Conf::API_COSAPI_END_POINT . Conf::APP_ID . '/' . $bucket . $dstPath;
+        $endPoint = Conf::API_COSAPI_END_POINT;
+        $endPoint = str_replace('region', self::$region, $endPoint);
+
+        return $endPoint . Conf::APP_ID . '/' . $bucket . $dstPath;
     }
 
 	/*

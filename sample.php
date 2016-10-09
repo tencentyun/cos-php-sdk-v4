@@ -10,6 +10,7 @@ $dst = '/testfolder/111.txt';
 $folder = '/testfolder';
 
 Cosapi::setTimeout(180);
+Cosapi::setRegion('gz'); // Set region to guangzou.
 
 // Create folder in bucket.
 $ret = Cosapi::createFolder($bucket, $folder);
