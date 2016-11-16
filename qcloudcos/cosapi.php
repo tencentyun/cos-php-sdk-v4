@@ -709,7 +709,7 @@ class Cosapi {
      */
 	private static function getSliceSize($sliceSize) {
 		if (!isset($sliceSize)) {
-			return $self::SLICE_SIZE_1M;
+			return self::SLICE_SIZE_1M;
 		}
 
 		if ($sliceSize <= self::SLICE_SIZE_512K) {
