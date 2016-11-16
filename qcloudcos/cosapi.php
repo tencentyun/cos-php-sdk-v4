@@ -433,9 +433,7 @@ class Cosapi {
             );
 
             for ($retryCount = 0; $retryCount < self::MAX_RETRY_TIMES; ++$retryCount) {
-                var_dump($req);
                 $ret = self::sendRequest($req);
-                var_dump($ret);
                 if ($ret['code'] == 0) {
                     break;
                 }
@@ -470,7 +468,6 @@ class Cosapi {
             ),
         );
 
-        var_dump($req);
         return self::sendRequest($req);
     }
 
