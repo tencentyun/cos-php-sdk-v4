@@ -2,28 +2,22 @@
 
 namespace qcloudcos;
 
+require_once(__DIR__ . DIRECTORY_SEPARATOR . 'error_code.php');
+
 date_default_timezone_set('PRC');
 
 class Cosapi {
 
     //计算sign签名的时间参数
     const EXPIRED_SECONDS = 180;
-    //512K
-    const SLICE_SIZE_512K = 524288;
     //1M
     const SLICE_SIZE_1M = 1048576;
-    //2M
-    const SLICE_SIZE_2M = 2097152;
-	//3M
-    const SLICE_SIZE_3M = 3145728;
     //20M 大于20M的文件需要进行分片传输
     const MAX_UNSLICE_FILE_SIZE = 20971520;
 	//失败尝试次数
     const MAX_RETRY_TIMES = 3;
-	//返回的错误码
-    const COSAPI_PARAMS_ERROR = -1;
-    const COSAPI_NETWORK_ERROR = -2;
-	//HTTP请求超时时间
+
+    //HTTP请求超时时间
     private static $timeout = 60;
     private static $region = 'gz'; // default region is guangzou
 
@@ -49,29 +43,30 @@ class Cosapi {
      * @param  string  $bucket   bucket名称
      * @param  string  $srcPath      本地文件路径
      * @param  string  $dstPath      上传的文件路径
-	 * @param  string  $bizAttr      文件属性
-	 * @param  string  $slicesize    分片大小(512k,1m,2m,3m)，默认:1m
-	 * @param  string  $insertOnly   同名文件是否覆盖
+     * @param  string  $bizAttr      文件属性
+     * @param  string  $slicesize    分片大小(512k,1m,2m,3m)，默认:1m
+     * @param  string  $insertOnly   同名文件是否覆盖
      * @return [type]                [description]
      */
     public static function upload(
-            $bucket, $srcPath, $dstPath, $bizAttr = null, $sliceSize = null, $insertOnly = null) {
+            $bucket, $srcPath, $dstPath, $bizAttr=null, $sliceSize=null, $insertOnly=null) {
         if (!file_exists($srcPath)) {
             return array(
-                    'code' => self::COSAPI_PARAMS_ERROR,
-                    'message' => 'file ' . $srcPath .' not exists',
-                    'data' => array());
+                        'code' => COSAPI_PARAMS_ERROR,
+                        'message' => 'file ' . $srcPath .' not exists',
+                        'data' => array()
+                    );
         }
 
         $dstPath = self::normalizerPath($dstPath, false);
 
         //文件大于20M则使用分片传输
-	    if (filesize($srcPath) < self::MAX_UNSLICE_FILE_SIZE ) {
+        if (filesize($srcPath) < self::MAX_UNSLICE_FILE_SIZE ) {
             return self::uploadFile($bucket, $srcPath, $dstPath, $bizAttr, $insertOnly);
         } else {
-			$sliceSize = self::getSliceSize($sliceSize);
-		    return self::uploadBySlicing($bucket, $srcPath, $dstPath, $bizAttr, $sliceSize, $insertOnly);
-	    }
+            $sliceSize = self::getSliceSize($sliceSize);
+            return self::uploadBySlicing($bucket, $srcPath, $dstPath, $bizAttr, $sliceSize, $insertOnly);
+        }
     }
 
     /*
@@ -83,9 +78,10 @@ class Cosapi {
     public static function createFolder($bucket, $folder, $bizAttr = null) {
         if (!self::isValidPath($folder)) {
             return array(
-                    'code' => self::COSAPI_PARAMS_ERROR,
-                    'message' => 'folder ' . $path . ' is not a valid folder name',
-                    'data' => array());
+                        'code' => COSAPI_PARAMS_ERROR,
+                        'message' => 'folder ' . $path . ' is not a valid folder name',
+                        'data' => array()
+                    );
         }
 
         $folder = self::normalizerPath($folder, True);
@@ -146,10 +142,9 @@ class Cosapi {
                     $bucket, $prefix, $num = 20,
                     $pattern = 'eListBoth', $order = 0,
                     $context = null) {
-		$path = self::normalizerPath($prefix);
+        $path = self::normalizerPath($prefix);
 
-        return self::listBase($bucket, $prefix, $num,
-                $pattern, $order, $context);
+        return self::listBase($bucket, $prefix, $num, $pattern, $order, $context);
     }
 
     /*
@@ -184,7 +179,7 @@ class Cosapi {
     public static function delFolder($bucket, $folder) {
         if (empty($bucket) || empty($folder)) {
             return array(
-                    'code' => self::COSAPI_PARAMS_ERROR,
+                    'code' => COSAPI_PARAMS_ERROR,
                     'message' => 'bucket or path is empty');
         }
 
@@ -231,7 +226,7 @@ class Cosapi {
     public static function delFile($bucket, $path) {
         if (empty($bucket) || empty($path)) {
             return array(
-                    'code' => self::COSAPI_PARAMS_ERROR,
+                    'code' => COSAPI_PARAMS_ERROR,
                     'message' => 'path is empty');
         }
 
@@ -245,8 +240,8 @@ class Cosapi {
      * @param  string  $bucket  bucket名称
      * @param  string  $srcPath     本地文件路径
      * @param  string  $dstPath     上传的文件路径
-	 * @param  string  $bizAttr     文件属性
-	 * @param  int     $insertOnly  是否覆盖同名文件:0 覆盖,1:不覆盖
+     * @param  string  $bizAttr     文件属性
+     * @param  int     $insertOnly  是否覆盖同名文件:0 覆盖,1:不覆盖
      * @return [type]               [description]
      */
     private static function uploadFile($bucket, $srcPath, $dstPath, $bizAttr = null, $insertOnly = null) {
@@ -255,7 +250,7 @@ class Cosapi {
 
 	    if (filesize($srcPath) >= self::MAX_UNSLICE_FILE_SIZE ) {
 		    return array(
-                'code' => self::COSAPI_PARAMS_ERROR,
+                'code' => COSAPI_PARAMS_ERROR,
                 'message' => 'file '.$srcPath.' larger then 20M, please use uploadBySlicing interface',
                 'data' => array()
             );
@@ -300,175 +295,78 @@ class Cosapi {
      * @param  string  $bucket  bucket名称
      * @param  string  $srcPath     本地文件路径
      * @param  string  $dstPath     上传的文件路径
-	 * @param  string  $bizAttr     文件属性
-	 * @param  string  $sliceSize   分片大小
-	 * @param  int     $insertOnly  是否覆盖同名文件:0 覆盖,1:不覆盖
+     * @param  string  $bizAttr     文件属性
+     * @param  string  $sliceSize   分片大小
+     * @param  int     $insertOnly  是否覆盖同名文件:0 覆盖,1:不覆盖
      * @return [type]                [description]
      */
     private static function uploadBySlicing(
-            $bucket, $srcPath,  $dstPath, $bizAttr = null, $sliceSize = null, $insertOnly=null) {
-        $srcPath = realpath($srcPath);
-        $fileSize = filesize($srcPath);
-        $dstPath = self::cosUrlEncode($dstPath);
-
-        $expired = time() + self::EXPIRED_SECONDS;
-        $url = self::generateResUrl($bucket, $dstPath);
-        $signature = Auth::createReusableSignature($expired, $bucket);
-        $fileSha = hash_file('sha1', $srcPath);
-
-        $ret = self::initUploadingSlices($url, $signature, $srcPath, $fileSize, $fileSha,
-                $sliceSize, $bizAttr, $insertOnly);
-        if($ret['code'] != 0) {
-            return $ret;
-        }
-
-        if(isset($ret['data']) && isset($ret['data']['url'])) {
-            //秒传命中，直接返回了url
-            return $ret;
-        }
-
-        $sliceSize = $ret['data']['slice_size'];
-        if ($sliceSize > self::SLICE_SIZE_3M || $sliceSize <= 0) {
-            $ret['code'] = self::COSAPI_PARAMS_ERROR;
-            $ret['message'] = 'illegal slice size';
-            return $ret;
-        }
-
-        $session = $ret['data']['session'];
-
+            $bucket, $srcFpath,  $dstFpath, $bizAttr=null, $sliceSize=null, $insertOnly=null) {
+        $srcFpath = realpath($srcFpath);
+        $fileSize = filesize($srcFpath);
+        $dstFpath = self::cosUrlEncode($dstFpath);
+        $url = self::generateResUrl($bucket, $dstFpath);
         $sliceCount = ceil($fileSize / $sliceSize);
-        // expired seconds for one slice mutiply by slice count
+        // expiration seconds for one slice mutiply by slice count
         // will be the expired seconds for whole file
-        $expired = time() + (self::EXPIRED_SECONDS * $sliceCount);
-        $signature = Auth::createReusableSignature($expired, $bucket);
-
-        $ret = self::uploadSlices(
-                $url, $session, $signature, $srcPath, $fileSize, $fileSha, $sliceSize);
-        if ($ret['code'] != 0) {
-            return $ret;
+        $expiration = time() + (self::EXPIRED_SECONDS * $sliceCount);
+        if ($expiration >= (time() + 10 * 24 * 60 * 60)) {
+            $expiration = time() + 10 * 24 * 60 * 60;
         }
+        $signature = Auth::createReusableSignature($expiration, $bucket);
 
-        $ret = self::finishUploadingSlices($url, $session, $signature, $fileSize, $fileSha);
-        return $ret;
-    }
+        $sliceUploading = new SliceUploading(self::$timeout * 1000, self::MAX_RETRY_TIMES);
+        for ($tryCount = 0; $tryCount < self::MAX_RETRY_TIMES; ++$tryCount) {
+            if ($sliceUploading->initUploading(
+                        $signature,
+                        $srcFpath,
+                        $url,
+                        $fileSize, $sliceSize, $bizAttr, $insertOnly)) {
+                break;
+            }
 
-    /**
-     * Init uploading slices.
-     */
-    private static function initUploadingSlices($url, $signature, $filepath, $fileSize, $fileSha,
-            $sliceSize, $bizAttr = null, $insertOnly = null) {
-        $data = array(
-            'op' => 'upload_slice_init',
-            'filesize' => $fileSize,
-        );
+            $errorCode = $sliceUploading->getLastErrorCode();
+            if ($errorCode === -4019) {
+                // Delete broken file and retry again on _ERROR_FILE_NOT_FINISH_UPLOAD error.
+                Cosapi::delFile($bucket, $dstFpath);
+                continue;
+            }
 
-        if ($sliceSize <= self::SLICE_SIZE_3M) {
-            $data['slice_size'] = $sliceSize;
-        } else {
-            $data['slice_size'] = self::SLICE_SIZE_3M;
-        }
-
-		if (isset($bizAttr) && strlen($bizAttr)) {
-            $data['biz_attr'] = $bizAttr;
-        }
-
-	    if (isset($insertOnly)) {
-			$data['insertOnly'] = (($insertOnly == 0) ? 0 : 1);
-        }
-
-        $slicesSha = self::computeSlicesSha($filepath, $sliceSize);
-        if ($slicesSha === false) {
-            $ret['code'] = self::COSAPI_PARAMS_ERROR;
-            $ret['message'] = 'read file ' . $filepath . ' error';
-            return $ret;
-        }
-
-        $data['uploadparts'] = json_encode($slicesSha);
-        $data['sha'] = $slicesSha[count($slicesSha) - 1]['datasha'];
-
-        $req = array(
-            'url' => $url,
-            'method' => 'post',
-            'timeout' => self::$timeout,
-            'data' => $data,
-            'header' => array(
-                'Authorization: ' . $signature,
-            ),
-        );
-
-        return self::sendRequest($req);
-    }
-
-    /**
-     * Upload |$filepath|'s all slices into cos syste.
-     */
-    private static function uploadSlices(
-            $url, $session, $signature, $filepath, $fileSize, $fileSha, $sliceSize) {
-        for ($offset = 0; $offset < $fileSize; $offset += $sliceSize) {
-            $sliceContent = file_get_contents($filepath, false, null, $offset, $sliceSize);
-            if ($sliceContent === false) {
+            if ($tryCount === self::MAX_RETRY_TIMES - 1) {
                 return array(
-                    'code' => self::COSAPI_PARAMS_ERROR,
-                    'message' => 'read file ' . $filepath .' error',
-                    'data' => array(),
-                );
-            }
-
-            $data = array(
-                'op' => 'upload_slice_data',
-                'session' => $session,
-                'offset' => $offset,
-                'filecontent' => $sliceContent,
-                'sha' => $fileSha,
-            );
-
-            $req = array(
-                'url' => $url,
-                'method' => 'post',
-                'timeout' => self::$timeout,
-                'data' => $data,
-                'header' => array(
-                    'Authorization: ' . $signature,
-                ),
-            );
-
-            for ($retryCount = 0; $retryCount < self::MAX_RETRY_TIMES; ++$retryCount) {
-                $ret = self::sendRequest($req);
-                if ($ret['code'] == 0) {
-                    break;
-                }
-            }
-
-            if($ret['code'] != 0) {
-                return $ret;
+                            'code' => $sliceUploading->getLastErrorCode(),
+                            'message' => $sliceUploading->getLastErrorMessage(),
+                            'requestId' => $sliceUploading->getRequestId(),
+                        );
             }
         }
 
-        return $ret;
-    }
+        if (!$sliceUploading->performUploading()) {
+            return array(
+                        'code' => $sliceUploading->getLastErrorCode(),
+                        'message' => $sliceUploading->getLastErrorMessage(),
+                        'requestId' => $sliceUploading->getRequestId(),
+                    );
+        }
 
-    /**
-     * Finish uploading slices.
-     */
-    private static function finishUploadingSlices($url, $session, $signature, $fileSize, $fileSha) {
-        $data = array(
-            'op' => 'upload_slice_finish',
-            'session' => $session,
-            'filesize' => $fileSize,
-            'sha' => $fileSha,
-        );
+        if (!$sliceUploading->finishUploading()) {
+            return array(
+                        'code' => $sliceUploading->getLastErrorCode(),
+                        'message' => $sliceUploading->getLastErrorMessage(),
+                        'requestId' => $sliceUploading->getRequestId(),
+                    );
+        }
 
-        $req = array(
-            'url' => $url,
-            'method' => 'post',
-            'timeout' => self::$timeout,
-            'data' => $data,
-            'header' => array(
-                'Authorization: ' . $signature,
-            ),
-        );
-
-        return self::sendRequest($req);
+        return array(
+                    'code' => 0,
+                    'message' => 'success',
+                    'requestId' => $sliceUploading->getRequestId(),
+                    'data' => array(
+                        'accessUrl' => $sliceUploading->getAccessUrl(),
+                        'resourcePath' => $sliceUploading->getResourcePath(),
+                        'sourceUrl' => $sliceUploading->getSourceUrl(),
+                    ),
+                );
     }
 
     /*
@@ -491,44 +389,44 @@ class Cosapi {
             'op' => 'list',
         );
 
-		if (self::isPatternValid($pattern) == false) {
+        if (self::isPatternValid($pattern) == false) {
             return array(
-                'code' => self::COSAPI_PARAMS_ERROR,
-                'message' => 'parameter pattern invalid',
-            );
-		}
-		$data['pattern'] = $pattern;
+                    'code' => COSAPI_PARAMS_ERROR,
+                    'message' => 'parameter pattern invalid',
+                    );
+        }
+        $data['pattern'] = $pattern;
 
-		if ($order != 0 && $order != 1) {
-			return array(
-                'code' => self::COSAPI_PARAMS_ERROR,
-                'message' => 'parameter order invalid',
-            );
-		}
+        if ($order != 0 && $order != 1) {
+            return array(
+                        'code' => COSAPI_PARAMS_ERROR,
+                        'message' => 'parameter order invalid',
+                    );
+        }
 		$data['order'] = $order;
 
 		if ($num < 0 || $num > 199) {
-			return array(
-                'code' => self::COSAPI_PARAMS_ERROR,
-                'message' => 'parameter num invalid, num need less then 200',
-            );
+            return array(
+                        'code' => COSAPI_PARAMS_ERROR,
+                        'message' => 'parameter num invalid, num need less then 200',
+                    );
 		}
-		$data['num'] = $num;
+        $data['num'] = $num;
 
-		if (isset($context)) {
-			$data['context'] = $context;
-		}
+        if (isset($context)) {
+            $data['context'] = $context;
+        }
 
         $url = $url . '?' . http_build_query($data);
 
         $req = array(
-            'url' => $url,
-            'method' => 'get',
-            'timeout' => self::$timeout,
-            'header' => array(
-                'Authorization: ' . $signature,
-            ),
-        );
+                    'url' => $url,
+                    'method' => 'get',
+                    'timeout' => self::$timeout,
+                    'header' => array(
+                        'Authorization: ' . $signature,
+                    ),
+                );
 
         return self::sendRequest($req);
     }
@@ -548,7 +446,6 @@ class Cosapi {
      */
     private static function updateBase(
             $bucket, $path, $bizAttr = null, $authority = null, $custom_headers_array = null) {
-
         $path = self::cosUrlEncode($path);
         $expired = time() + self::EXPIRED_SECONDS;
         $url = self::generateResUrl($bucket, $path);
@@ -563,7 +460,7 @@ class Cosapi {
 	    if (isset($authority) && strlen($authority) > 0) {
 			if(self::isAuthorityValid($authority) == false) {
                 return array(
-                        'code' => self::COSAPI_PARAMS_ERROR,
+                        'code' => COSAPI_PARAMS_ERROR,
                         'message' => 'parameter authority invalid');
 			}
 
@@ -626,7 +523,7 @@ class Cosapi {
     private static function delBase($bucket, $path) {
         if ($path == "/") {
             return array(
-                    'code' => self::COSAPI_PARAMS_ERROR,
+                    'code' => COSAPI_PARAMS_ERROR,
                     'message' => 'can not delete bucket using api! go to ' .
                                  'http://console.qcloud.com/cos to operate bucket');
         }
@@ -682,7 +579,7 @@ class Cosapi {
         $rsp = HttpClient::sendRequest($req);
         if ($rsp === false) {
             return array(
-                'code' => self::COSAPI_NETWORK_ERROR,
+                'code' => COSAPI_NETWORK_ERROR,
                 'message' => 'network error',
             );
         }
@@ -692,7 +589,7 @@ class Cosapi {
 
         if ($ret === NULL) {
             return array(
-                'code' => self::COSAPI_NETWORK_ERROR,
+                'code' => COSAPI_NETWORK_ERROR,
                 'message' => $rsp,
                 'data' => array()
             );
@@ -705,19 +602,8 @@ class Cosapi {
      * Get slice size.
      */
 	private static function getSliceSize($sliceSize) {
-		if (!isset($sliceSize)) {
-			return self::SLICE_SIZE_1M;
-		}
-
-		if ($sliceSize <= self::SLICE_SIZE_512K) {
-			return self::SLICE_SIZE_512K;
-		} else if ($sliceSize <= self::SLICE_SIZE_1M) {
-			return self::SLICE_SIZE_1M;
-		} else if ($sliceSize <= self::SLICE_SIZE_2M) {
-			return self::SLICE_SIZE_2M;
-		} else {
-			return self::SLICE_SIZE_3M;
-		}
+        // Fix slice size to 1MB.
+        return self::SLICE_SIZE_1M;
 	}
 
     /*
@@ -796,44 +682,6 @@ class Cosapi {
 	            $data[$key] = $value;
             }
 	    }
-    }
-
-    /**
-     * Compute each slice's sha for |$filepath|.
-     * Return slicesSha on success, false on failure.
-     */
-    private static function computeSlicesSha($filepath, $sliceSize) {
-        $fileSize = filesize($filepath);
-        if ($fileSize === false) {
-            return false;
-        }
-
-        $ctx = new Sha1Digest();
-        $ctx->initSha1();
-        $slicesSha = array();
-
-        for ($offset = 0; $offset < $fileSize; $offset += $sliceSize) {
-            $sliceContent = file_get_contents($filepath, false, null, $offset, $sliceSize);
-            if ($fileSize - $offset >= $sliceSize) {
-                $length = $sliceSize;
-            } else {
-                $length = $fileSize - $offset;
-            }
-
-            $sha = $ctx->updateSha1($sliceContent);
-
-            if ($offset + $length >= $fileSize) { // The last slice.
-                $sha = $ctx->finalSha1();
-            }
-
-            $slicesSha[] = array(
-                'offset' => $offset,
-                'datalen' => $length,
-                'datasha' => $sha,
-            );
-        }
-
-        return $slicesSha;
     }
 
     // Check |$path| is a valid file path.

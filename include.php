@@ -4,4 +4,4 @@ require_once(__DIR__ . DIRECTORY_SEPARATOR . 'qcloudcos' . DIRECTORY_SEPARATOR .
 require_once(__DIR__ . DIRECTORY_SEPARATOR . 'qcloudcos' . DIRECTORY_SEPARATOR . 'conf.php');
 require_once(__DIR__ . DIRECTORY_SEPARATOR . 'qcloudcos' . DIRECTORY_SEPARATOR . 'cosapi.php');
 require_once(__DIR__ . DIRECTORY_SEPARATOR . 'qcloudcos' . DIRECTORY_SEPARATOR . 'http_client.php');
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'qcloudcos' . DIRECTORY_SEPARATOR . 'sha1_digest.php');
+require_once(__DIR__ . DIRECTORY_SEPARATOR . 'qcloudcos' . DIRECTORY_SEPARATOR . 'slice_uploading.php');
