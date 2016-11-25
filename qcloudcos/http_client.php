@@ -61,8 +61,11 @@ class HttpClient {
         curl_setopt(self::$curlHandler, CURLOPT_HTTPHEADER, $header);
         curl_setopt(self::$curlHandler, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt(self::$curlHandler, CURLOPT_CUSTOMREQUEST, $method);
+        if (defined('CURLOPT_SAFE_UPLOAD')) {
+            curl_setopt(self::$curlHandler, CURLOPT_SAFE_UPLOAD, true);
+        }
         isset($request['timeout']) && curl_setopt(self::$curlHandler, CURLOPT_TIMEOUT, $request['timeout']);
-        isset($request['data']) && in_array($method, array('POST', 'PUT')) && 
+        isset($request['data']) && in_array($method, array('POST', 'PUT')) &&
             curl_setopt(self::$curlHandler, CURLOPT_POSTFIELDS, $request['data']);
         $ssl = substr($request['url'], 0, 8) == "https://" ? true : false;
         if( isset($request['cert'])){

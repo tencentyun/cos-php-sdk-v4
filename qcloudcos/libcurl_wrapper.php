@@ -56,7 +56,10 @@ class LibcurlWrapper {
         array_push($headers, 'User-Agent:'.Conf::getUserAgent());
         curl_setopt($curlHandle, CURLOPT_HTTPHEADER, $headers);
         if ($httpRequest->method === 'POST') {
-            curl_setopt($curlHandle, CURLOPT_POST, 1);
+            if (defined('CURLOPT_SAFE_UPLOAD')) {
+                curl_setopt($curlHandle, CURLOPT_SAFE_UPLOAD, true);
+            }
+            curl_setopt($curlHandle, CURLOPT_POST, true);
             curl_setopt($curlHandle, CURLOPT_POSTFIELDS, $httpRequest->dataToPost);
         }
 
