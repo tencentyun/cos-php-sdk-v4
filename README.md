@@ -15,7 +15,10 @@ cos-php-sdk：php sdk for [腾讯云对象存储服务](https://www.qcloud.com/p
 require('cos-php-sdk-v4/include.php');
 use qcloudcos\Cosapi;
 
-// 设置cos所在的区域
+// 设置COS所在的区域，对应关系如下：
+//     华南  -> gz
+//     华中  -> sh
+//     华北  -> tj
 Cosapi::setRegion('gz');
 
 // 创建文件夹
