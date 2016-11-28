@@ -10,7 +10,12 @@ $dst = '/testfolder/111.txt';
 $folder = '/testfolder';
 
 Cosapi::setTimeout(180);
-Cosapi::setRegion('gz'); // Set region to guangzou.
+
+// 设置COS所在的区域，对应关系如下：
+//     华南  -> gz
+//     华中  -> sh
+//     华北  -> tj
+Cosapi::setRegion('gz');
 
 // Create folder in bucket.
 $ret = Cosapi::createFolder($bucket, $folder);
