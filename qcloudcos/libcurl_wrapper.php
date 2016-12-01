@@ -54,14 +54,18 @@ class LibcurlWrapper {
         curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, 1);
         $headers = $httpRequest->customHeaders;
         array_push($headers, 'User-Agent:'.Conf::getUserAgent());
-        curl_setopt($curlHandle, CURLOPT_HTTPHEADER, $headers);
         if ($httpRequest->method === 'POST') {
             if (defined('CURLOPT_SAFE_UPLOAD')) {
                 curl_setopt($curlHandle, CURLOPT_SAFE_UPLOAD, true);
             }
+
             curl_setopt($curlHandle, CURLOPT_POST, true);
-            curl_setopt($curlHandle, CURLOPT_POSTFIELDS, $httpRequest->dataToPost);
+            $arr = buildCustomPostFields($httpRequest->dataToPost);
+            array_push($headers, 'Expect: 100-continue');
+            array_push($headers, 'Content-Type: multipart/form-data; boundary=' . $arr[0]);
+            curl_setopt($curlHandle, CURLOPT_POSTFIELDS, $arr[1]);
         }
+        curl_setopt($curlHandle, CURLOPT_HTTPHEADER, $headers);
 
         curl_multi_add_handle($this->curlMultiHandle, $curlHandle);
 

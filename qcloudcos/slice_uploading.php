@@ -5,6 +5,7 @@ namespace qcloudcos;
 require_once(__DIR__ . DIRECTORY_SEPARATOR . 'conf.php');
 require_once(__DIR__ . DIRECTORY_SEPARATOR . 'error_code.php');
 require_once(__DIR__ . DIRECTORY_SEPARATOR . 'http_client.php');
+require_once(__DIR__ . DIRECTORY_SEPARATOR . 'libcurl_helper.php');
 require_once(__DIR__ . DIRECTORY_SEPARATOR . 'libcurl_wrapper.php');
 
 /**
@@ -246,15 +247,15 @@ class SliceUploading {
         $requestErrorMessage = 'success';
         $retryCount = $request->userData['retryCount'];
 
-        if ($response->curlErrorCode !== CURLE_OK) {
-            $requestErrorCode = COSAPI_NETWORK_ERROR;
-            $requestErrorMessage = 'network error: curl errno ' . $response->curlErrorCode;
-        }
-
         $responseJson = json_decode($response->body, true);
         if ($responseJson === NULL) {
             $requestErrorCode = COSAPI_NETWORK_ERROR;
             $requestErrorMessage = 'network error';
+        }
+
+        if ($response->curlErrorCode !== CURLE_OK) {
+            $requestErrorCode = COSAPI_NETWORK_ERROR;
+            $requestErrorMessage = 'network error: curl errno ' . $response->curlErrorCode;
         }
 
         $this->requestId = $responseJson['request_id'];
