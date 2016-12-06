@@ -267,11 +267,7 @@ class Cosapi {
             'biz_attr' => (isset($bizAttr) ? $bizAttr : ''),
         );
 
-        if (function_exists('curl_file_create')) {
-            $data['filecontent'] = curl_file_create($srcPath);
-        } else {
-            $data['filecontent'] = '@' . $srcPath;
-        }
+        $data['filecontent'] = file_get_contents($srcPath);
 
         if (isset($insertOnly) && strlen($insertOnly) > 0) {
             $data['insertOnly'] = (($insertOnly == 0 || $insertOnly == '0' ) ? 0 : 1);
