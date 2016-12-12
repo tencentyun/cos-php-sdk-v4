@@ -60,3 +60,7 @@ var_dump($ret);
 // Delete folder.
 $ret = Cosapi::delFolder($bucket, $folder);
 var_dump($ret);
+
+// Copy file.
+$ret = Cosapi::copyFile($bucket, '/111.txt', $dst);
+var_dump($ret);
