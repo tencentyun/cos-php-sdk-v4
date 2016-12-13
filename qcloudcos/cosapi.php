@@ -710,4 +710,38 @@ class Cosapi {
 
         return true;
     }
+
+    /**
+     * 文件复制
+     *
+     * @param $bucketName bucket名称
+     * @param $srcPath  源文件路径(bucket中存储的路径)
+     * @param $dstPath  上传的文件路径(bucket中存储的路径)
+     * @param int $toOverWrite 是否覆盖 1-覆盖,0-不覆盖
+     *
+     * @return array|mixed
+     */
+    public static function copyFile($bucket, $srcPath, $dstPath, $toOverWrite = 0)
+    {
+        $url = self::generateResUrl($bucket, $srcPath);
+
+        $sign = Auth::createNonreusableSignature($bucket, $srcPath);
+
+        $data = array(
+            'op' => 'copy',
+            'dest_fileid' => $dstPath,
+            'to_over_write' => $toOverWrite,
+        );
+
+        $req = array(
+            'url' => $url,
+            'method' => 'post',
+            'timeout' => self::$timeout,
+            'data' => $data,
+            'header' => array(
+                'Authorization: '.$sign,
+            ),
+        );
+        return self::sendRequest($req);
+    }
 }
