@@ -64,4 +64,12 @@ var_dump($ret);
 // 删除目录
 $ret = Cosapi::delFolder($bucket, $folder);
 var_dump($ret);
+
+// 复制文件
+$ret = Cosapi::copyFile($bucket, '/111.txt', '/111_2.txt');
+var_dump($ret);
+
+// 移动文件
+$ret = Cosapi::moveFile($bucket, '/111.txt', '/111_3.txt');
+var_dump($ret);
 ```

@@ -53,14 +53,20 @@ var_dump($ret);
 $ret = Cosapi::stat($bucket, $dst);
 var_dump($ret);
 
+// Copy file.
+$ret = Cosapi::copyFile($bucket, $dst, $dst . '_copy');
+var_dump($ret);
+
+// Move file.
+$ret = Cosapi::moveFile($bucket, $dst, $dst . '_move');
+var_dump($ret);
+
 // Delete file.
-$ret = Cosapi::delFile($bucket, $dst);
+$ret = Cosapi::delFile($bucket, $dst . '_copy');
+var_dump($ret);
+$ret = Cosapi::delFile($bucket, $dst . '_move');
 var_dump($ret);
 
 // Delete folder.
 $ret = Cosapi::delFolder($bucket, $folder);
-var_dump($ret);
-
-// Copy file.
-$ret = Cosapi::copyFile($bucket, '/111.txt', $dst);
 var_dump($ret);

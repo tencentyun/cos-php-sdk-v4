@@ -712,36 +712,60 @@ class Cosapi {
     }
 
     /**
-     * 文件复制
-     *
-     * @param $bucketName bucket名称
-     * @param $srcPath  源文件路径(bucket中存储的路径)
-     * @param $dstPath  上传的文件路径(bucket中存储的路径)
-     * @param int $toOverWrite 是否覆盖 1-覆盖,0-不覆盖
-     *
-     * @return array|mixed
+     * Copy a file.
+     * @param $bucket bucket name.
+     * @param $srcFpath source file path.
+     * @param $dstFpath destination file path.
+     * @param $overwrite if the destination location is occupied, overwrite it or not?
+     * @return array|mixed.
      */
-    public static function copyFile($bucket, $srcPath, $dstPath, $toOverWrite = 0)
-    {
-        $url = self::generateResUrl($bucket, $srcPath);
-
-        $sign = Auth::createNonreusableSignature($bucket, $srcPath);
-
+    public static function copyFile($bucket, $srcFpath, $dstFpath, $overwrite = false) {
+        $url = self::generateResUrl($bucket, $srcFpath);
+        $sign = Auth::createNonreusableSignature($bucket, $srcFpath);
         $data = array(
             'op' => 'copy',
-            'dest_fileid' => $dstPath,
-            'to_over_write' => $toOverWrite,
+            'dest_fileid' => $dstFpath,
+            'to_over_write' => $overwrite ? 1 : 0,
         );
-
         $req = array(
             'url' => $url,
             'method' => 'post',
             'timeout' => self::$timeout,
             'data' => $data,
             'header' => array(
-                'Authorization: '.$sign,
+                'Authorization: ' . $sign,
             ),
         );
+
+        return self::sendRequest($req);
+    }
+
+    /**
+     * Move a file.
+     * @param $bucket bucket name.
+     * @param $srcFpath source file path.
+     * @param $dstFpath destination file path.
+     * @param $overwrite if the destination location is occupied, overwrite it or not?
+     * @return array|mixed.
+     */
+    public static function moveFile($bucket, $srcFpath, $dstFpath, $overwrite = false) {
+        $url = self::generateResUrl($bucket, $srcFpath);
+        $sign = Auth::createNonreusableSignature($bucket, $srcFpath);
+        $data = array(
+            'op' => 'move',
+            'dest_fileid' => $dstFpath,
+            'to_over_write' => $overwrite ? 1 : 0,
+        );
+        $req = array(
+            'url' => $url,
+            'method' => 'post',
+            'timeout' => self::$timeout,
+            'data' => $data,
+            'header' => array(
+                'Authorization: ' . $sign,
+            ),
+        );
+
         return self::sendRequest($req);
     }
 }
