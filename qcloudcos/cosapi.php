@@ -332,7 +332,7 @@ class Cosapi {
                 return array(
                             'code' => $sliceUploading->getLastErrorCode(),
                             'message' => $sliceUploading->getLastErrorMessage(),
-                            'requestId' => $sliceUploading->getRequestId(),
+                            'request_id' => $sliceUploading->getRequestId(),
                         );
             }
         }
@@ -341,7 +341,7 @@ class Cosapi {
             return array(
                         'code' => $sliceUploading->getLastErrorCode(),
                         'message' => $sliceUploading->getLastErrorMessage(),
-                        'requestId' => $sliceUploading->getRequestId(),
+                        'request_id' => $sliceUploading->getRequestId(),
                     );
         }
 
@@ -349,18 +349,18 @@ class Cosapi {
             return array(
                         'code' => $sliceUploading->getLastErrorCode(),
                         'message' => $sliceUploading->getLastErrorMessage(),
-                        'requestId' => $sliceUploading->getRequestId(),
+                        'request_id' => $sliceUploading->getRequestId(),
                     );
         }
 
         return array(
                     'code' => 0,
                     'message' => 'success',
-                    'requestId' => $sliceUploading->getRequestId(),
+                    'request_id' => $sliceUploading->getRequestId(),
                     'data' => array(
-                        'accessUrl' => $sliceUploading->getAccessUrl(),
-                        'resourcePath' => $sliceUploading->getResourcePath(),
-                        'sourceUrl' => $sliceUploading->getSourceUrl(),
+                        'access_url' => $sliceUploading->getAccessUrl(),
+                        'resource_path' => $sliceUploading->getResourcePath(),
+                        'source_url' => $sliceUploading->getSourceUrl(),
                     ),
                 );
     }
