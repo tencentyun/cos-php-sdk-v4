@@ -21,11 +21,13 @@ class HttpResponse {
 
 // A simple wrapper for libcurl using multi interface to do transfers in parallel.
 class LibcurlWrapper {
+    private $sequence;        // integer: sequence id for each request.
     private $curlMultiHandle; // curl handle: curl multi handle.
     private $curlHandleInfo;  // array: array of active curl handle.
     private $idleCurlHandle;  // array: idle curl handle which can be reused.
 
     public function __construct() {
+        $this->sequence = 0;
         $this->curlMultiHandle = curl_multi_init();
         $this->idleCurlHandle = array();
     }
@@ -39,6 +41,8 @@ class LibcurlWrapper {
     }
 
     public function startSendingRequest($httpRequest, $done) {
+        $this->sequence += 1;
+
         if (count($this->idleCurlHandle) !== 0) {
             $curlHandle = array_pop($this->idleCurlHandle);
         } else {
@@ -69,8 +73,10 @@ class LibcurlWrapper {
 
         curl_multi_add_handle($this->curlMultiHandle, $curlHandle);
 
-        $this->curlHandleInfo[$curlHandle]['done'] = $done;
-        $this->curlHandleInfo[$curlHandle]['request'] = $httpRequest;
+
+        $this->curlHandleInfo[$this->sequence]['handle'] = $curlHandle;
+        $this->curlHandleInfo[$this->sequence]['done'] = $done;
+        $this->curlHandleInfo[$this->sequence]['request'] = $httpRequest;
     }
 
     public function performSendingRequest() {
@@ -108,8 +114,17 @@ class LibcurlWrapper {
     private function processResult($info) {
         $result = $info['result'];
         $handle = $info['handle'];
-        $request = $this->curlHandleInfo[$handle]['request'];
-        $done = $this->curlHandleInfo[$handle]['done'];
+        $sequence = 0;
+
+        foreach ($this->curlHandleInfo as $key => $info) {
+            if ($info['handle'] === $handle) {
+                $sequence = $key;
+                break;
+            }
+        }
+
+        $request = $this->curlHandleInfo[$sequence]['request'];
+        $done = $this->curlHandleInfo[$sequence]['done'];
         $response = new HttpResponse();
 
         if ($result !== CURLE_OK) {
@@ -138,7 +153,7 @@ class LibcurlWrapper {
             call_user_func($done, $request, $response);
         }
 
-        unset($this->curlHandleInfo[$handle]);
+        unset($this->curlHandleInfo[$sequence]);
         curl_multi_remove_handle($this->curlMultiHandle, $handle);
 
         array_push($this->idleCurlHandle, $handle);
