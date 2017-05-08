@@ -79,7 +79,7 @@ class Cosapi {
         if (!self::isValidPath($folder)) {
             return array(
                         'code' => COSAPI_PARAMS_ERROR,
-                        'message' => 'folder ' . $path . ' is not a valid folder name',
+                        'message' => 'folder ' . $folder . ' is not a valid folder name',
                         'data' => array()
                     );
         }
