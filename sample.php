@@ -2,36 +2,48 @@
 
 require('./include.php');
 
-use qcloudcos\Cosapi;
+use QCloud\Cos\Api;
 
 $bucket = 'testbucket';
 $src = './111.txt';
 $dst = '/testfolder/111.txt';
 $folder = '/testfolder';
 
-Cosapi::setTimeout(180);
+$config = array(
+    'app_id' => '',
+    'secret_id' => '',
+    'secret_key' => '',
+    'end_point' => 'http://region.file.myqcloud.com/files/v2/',
+    'region' => 'gz',
+    'timeout' => 60
+);
+
+date_default_timezone_set('PRC');
+$api = new Api($config);
+
+$api->setTimeout(180);
 
 // 设置COS所在的区域，对应关系如下：
 //     华南  -> gz
 //     华中  -> sh
 //     华北  -> tj
-Cosapi::setRegion('gz');
+$api->setRegion('gz');
 
 // Create folder in bucket.
-$ret = Cosapi::createFolder($bucket, $folder);
+$ret = $api->createFolder($bucket, $folder);
 var_dump($ret);
 
 // Upload file into bucket.
-$ret = Cosapi::upload($bucket, $src, $dst);
+$ret = $api->upload($bucket, $src, $dst);
 var_dump($ret);
 
 // List folder.
-$ret = Cosapi::listFolder($bucket, $folder);
+$ret = $api->listFolder($bucket, $folder);
 var_dump($ret);
 
 // Update folder information.
 $bizAttr = "";
-$ret = Cosapi::updateFolder($bucket, $folder, $bizAttr);
+$ret = $api->updateFolder($bucket, $folder, $bizAttr);
 var_dump($ret);
 
 // Update file information.
@@ -42,31 +54,31 @@ $customerHeaders = array(
     'Content-Type' => 'application/pdf',
     'Content-Language' => 'ch',
 );
-$ret = Cosapi::update($bucket, $dst, $bizAttr,$authority, $customerHeaders);
+$ret = $api->update($bucket, $dst, $bizAttr,$authority, $customerHeaders);
 var_dump($ret);
 
 // Stat folder.
-$ret = Cosapi::statFolder($bucket, $folder);
+$ret = $api->statFolder($bucket, $folder);
 var_dump($ret);
 
 // Stat file.
-$ret = Cosapi::stat($bucket, $dst);
+$ret = $api->stat($bucket, $dst);
 var_dump($ret);
 
 // Copy file.
-$ret = Cosapi::copyFile($bucket, $dst, $dst . '_copy');
+$ret = $api->copyFile($bucket, $dst, $dst . '_copy');
 var_dump($ret);
 
 // Move file.
-$ret = Cosapi::moveFile($bucket, $dst, $dst . '_move');
+$ret = $api->moveFile($bucket, $dst, $dst . '_move');
 var_dump($ret);
 
 // Delete file.
-$ret = Cosapi::delFile($bucket, $dst . '_copy');
+$ret = $api->delFile($bucket, $dst . '_copy');
 var_dump($ret);
-$ret = Cosapi::delFile($bucket, $dst . '_move');
+$ret = $api->delFile($bucket, $dst . '_move');
 var_dump($ret);
 
 // Delete folder.
-$ret = Cosapi::delFolder($bucket, $folder);
+$ret = $api->delFolder($bucket, $folder);
 var_dump($ret);

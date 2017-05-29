@@ -1,23 +1,6 @@
 <?php
 
-namespace qcloudcos;
-
-class HttpRequest {
-    public $timeoutMs;        // int: the maximum number of milliseconds to perform this request.
-    public $url;              // string: the url this request will be sent to.
-    public $method;           // string: POST or GET.
-    public $customHeaders;    // array: custom modified, removed and added headers.
-    public $dataToPost;       // array: the data to post.
-    public $userData;         // any: user custom data.
-}
-
-class HttpResponse {
-    public $curlErrorCode;    // int: curl last error code.
-    public $curlErrorMessage; // string: curl last error message.
-    public $statusCode;       // int: http status code.
-    public $headers;          // array: response headers.
-    public $body;             // string: response body.
-}
+namespace QCloud\Cos;
 
 // A simple wrapper for libcurl using multi interface to do transfers in parallel.
 class LibcurlWrapper {
@@ -57,14 +40,14 @@ class LibcurlWrapper {
         curl_setopt($curlHandle, CURLOPT_HEADER, 1);
         curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, 1);
         $headers = $httpRequest->customHeaders;
-        array_push($headers, 'User-Agent:'.Conf::getUserAgent());
+        array_push($headers, 'User-Agent:'.$this->getUserAgent());
         if ($httpRequest->method === 'POST') {
             if (defined('CURLOPT_SAFE_UPLOAD')) {
                 curl_setopt($curlHandle, CURLOPT_SAFE_UPLOAD, true);
             }
 
             curl_setopt($curlHandle, CURLOPT_POST, true);
-            $arr = buildCustomPostFields($httpRequest->dataToPost);
+            $arr = Helper::buildCustomPostFields($httpRequest->dataToPost);
             array_push($headers, 'Expect: 100-continue');
             array_push($headers, 'Content-Type: multipart/form-data; boundary=' . $arr[0]);
             curl_setopt($curlHandle, CURLOPT_POSTFIELDS, $arr[1]);
@@ -170,5 +153,9 @@ class LibcurlWrapper {
             curl_setopt($handler, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($handler, CURLOPT_SSL_VERIFYHOST, 0);
         }
+    }
+
+    private function getUserAgent() {
+        return 'cos-php-sdk-' . Api::VERSION;
     }
 }

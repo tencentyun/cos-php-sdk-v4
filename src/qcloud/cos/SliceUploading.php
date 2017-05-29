@@ -1,12 +1,6 @@
 <?php
 
-namespace qcloudcos;
-
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'conf.php');
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'error_code.php');
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'http_client.php');
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'libcurl_helper.php');
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'libcurl_wrapper.php');
+namespace QCloud\Cos;
 
 /**
  * Uploading file to cos slice by slice.
@@ -31,6 +25,7 @@ class SliceUploading {
 
     private $offset;               // int: current uploading offset.
     private $libcurlWrapper;       // LibcurlWrapper: curl wrapper for sending multi http request concurrently.
+    private $httpClient;
 
     private $accessUrl;            // string: access url.
     private $resourcePath;         // string: resource path.
@@ -43,13 +38,14 @@ class SliceUploading {
     public function __construct($timeoutMs, $maxRetryCount) {
         $this->timeoutMs = $timeoutMs;
         $this->maxRetryCount = $maxRetryCount;
-        $this->errorCode = COSAPI_SUCCESS;
+        $this->errorCode = Api::COSAPI_SUCCESS;
         $this->errorMessage = '';
         $this->concurrentTaskNumber = self::DEFAULT_CONCURRENT_TASK_NUMBER;
 
         $this->offset = 0;
 
         $this->libcurlWrapper = new LibcurlWrapper();
+        $this->httpClient = new HttpClient();
     }
 
     public function __destruct() {
@@ -169,7 +165,7 @@ class SliceUploading {
 
         $this->libcurlWrapper->performSendingRequest();
 
-        if ($this->errorCode !== COSAPI_SUCCESS) {
+        if ($this->errorCode !== Api::COSAPI_SUCCESS) {
             return false;
         }
 
@@ -207,15 +203,15 @@ class SliceUploading {
     }
 
     private function sendRequest($request) {
-        $response = HttpClient::sendRequest($request);
+        $response = $this->httpClient->sendRequest($request);
         if ($response === false) {
-            $this->setError(COSAPI_NETWORK_ERROR, 'network error');
+            $this->setError(Api::COSAPI_NETWORK_ERROR, 'network error');
             return false;
         }
 
         $responseJson = json_decode($response, true);
         if ($responseJson === NULL) {
-            $this->setError(COSAPI_NETWORK_ERROR, 'network error');
+            $this->setError(Api::COSAPI_NETWORK_ERROR, 'network error');
             return false;
         }
 
@@ -229,7 +225,7 @@ class SliceUploading {
     }
 
     private function clearError() {
-        $this->errorCode = COSAPI_SUCCESS;
+        $this->errorCode = Api::COSAPI_SUCCESS;
         $this->errorMessage = 'success';
     }
 
@@ -239,22 +235,22 @@ class SliceUploading {
     }
 
     public function uploadCallback($request, $response) {
-        if ($this->errorCode !== COSAPI_SUCCESS) {
+        if ($this->errorCode !== Api::COSAPI_SUCCESS) {
             return;
         }
 
-        $requestErrorCode = COSAPI_SUCCESS;
+        $requestErrorCode = Api::COSAPI_SUCCESS;
         $requestErrorMessage = 'success';
         $retryCount = $request->userData['retryCount'];
 
         $responseJson = json_decode($response->body, true);
         if ($responseJson === NULL) {
-            $requestErrorCode = COSAPI_NETWORK_ERROR;
+            $requestErrorCode = Api::COSAPI_NETWORK_ERROR;
             $requestErrorMessage = 'network error';
         }
 
         if ($response->curlErrorCode !== CURLE_OK) {
-            $requestErrorCode = COSAPI_NETWORK_ERROR;
+            $requestErrorCode = Api::COSAPI_NETWORK_ERROR;
             $requestErrorMessage = 'network error: curl errno ' . $response->curlErrorCode;
         }
 
@@ -266,11 +262,11 @@ class SliceUploading {
 
         if (isset($responseJson['data']['datamd5']) &&
                 $responseJson['data']['datamd5'] !== $request->dataToPost['datamd5']) {
-            $requestErrorCode = COSAPI_INTEGRITY_ERROR;
+            $requestErrorCode = Api::COSAPI_INTEGRITY_ERROR;
             $requestErrorMessage = 'cosapi integrity error';
         }
 
-        if ($requestErrorCode !== COSAPI_SUCCESS) {
+        if ($requestErrorCode !== Api::COSAPI_SUCCESS) {
             if ($retryCount >= $this->maxRetryCount) {
                 $this->setError($requestErrorCode, $requestErrorMessage);
             } else {

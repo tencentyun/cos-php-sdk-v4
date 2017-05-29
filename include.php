@@ -1,7 +1,10 @@
 <?php
 
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'qcloudcos' . DIRECTORY_SEPARATOR . 'auth.php');
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'qcloudcos' . DIRECTORY_SEPARATOR . 'conf.php');
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'qcloudcos' . DIRECTORY_SEPARATOR . 'cosapi.php');
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'qcloudcos' . DIRECTORY_SEPARATOR . 'http_client.php');
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'qcloudcos' . DIRECTORY_SEPARATOR . 'slice_uploading.php');
+require_once(__DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'qcloud' . DIRECTORY_SEPARATOR . 'cos' . DIRECTORY_SEPARATOR . 'Auth.php');
+require_once(__DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'qcloud' . DIRECTORY_SEPARATOR . 'cos' . DIRECTORY_SEPARATOR . 'Helper.php');
+require_once(__DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'qcloud' . DIRECTORY_SEPARATOR . 'cos' . DIRECTORY_SEPARATOR . 'HttpClient.php');
+require_once(__DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'qcloud' . DIRECTORY_SEPARATOR . 'cos' . DIRECTORY_SEPARATOR . 'Api.php');
+require_once(__DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'qcloud' . DIRECTORY_SEPARATOR . 'cos' . DIRECTORY_SEPARATOR . 'HttpRequest.php');
+require_once(__DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'qcloud' . DIRECTORY_SEPARATOR . 'cos' . DIRECTORY_SEPARATOR . 'HttpResponse.php');
+require_once(__DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'qcloud' . DIRECTORY_SEPARATOR . 'cos' . DIRECTORY_SEPARATOR . 'LibcurlWrapper.php');
+require_once(__DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'qcloud' . DIRECTORY_SEPARATOR . 'cos' . DIRECTORY_SEPARATOR . 'SliceUploading.php');
