@@ -5,45 +5,36 @@ require('./include.php');
 use QCloud\Cos\Api;
 
 $bucket = 'testbucket';
-$src = './111.txt';
-$dst = '/testfolder/111.txt';
+$src = './hello.txt';
+$dst = '/testfolder/hello.txt';
 $folder = '/testfolder';
 
 $config = array(
     'app_id' => '',
     'secret_id' => '',
     'secret_key' => '',
-    'end_point' => 'http://region.file.myqcloud.com/files/v2/',
-    'region' => 'gz',
+    'region' => '',   // bucket所属地域：华北 'tj' 华东 'sh' 华南 'gz'
     'timeout' => 60
 );
 
 date_default_timezone_set('PRC');
-$api = new Api($config);
-
-$api->setTimeout(180);
-
-// 设置COS所在的区域，对应关系如下：
-//     华南  -> gz
-//     华中  -> sh
-//     华北  -> tj
-$api->setRegion('gz');
+$cosApi = new Api($config);
 
 // Create folder in bucket.
-$ret = $api->createFolder($bucket, $folder);
+$ret = $cosApi->createFolder($bucket, $folder);
 var_dump($ret);
 
 // Upload file into bucket.
-$ret = $api->upload($bucket, $src, $dst);
+$ret = $cosApi->upload($bucket, $src, $dst);
 var_dump($ret);
 
 // List folder.
-$ret = $api->listFolder($bucket, $folder);
+$ret = $cosApi->listFolder($bucket, $folder);
 var_dump($ret);
 
 // Update folder information.
 $bizAttr = "";
-$ret = $api->updateFolder($bucket, $folder, $bizAttr);
+$ret = $cosApi->updateFolder($bucket, $folder, $bizAttr);
 var_dump($ret);
 
 // Update file information.
@@ -54,31 +45,31 @@ $customerHeaders = array(
     'Content-Type' => 'application/pdf',
     'Content-Language' => 'ch',
 );
-$ret = $api->update($bucket, $dst, $bizAttr,$authority, $customerHeaders);
+$ret = $cosApi->update($bucket, $dst, $bizAttr,$authority, $customerHeaders);
 var_dump($ret);
 
 // Stat folder.
-$ret = $api->statFolder($bucket, $folder);
+$ret = $cosApi->statFolder($bucket, $folder);
 var_dump($ret);
 
 // Stat file.
-$ret = $api->stat($bucket, $dst);
+$ret = $cosApi->stat($bucket, $dst);
 var_dump($ret);
 
 // Copy file.
-$ret = $api->copyFile($bucket, $dst, $dst . '_copy');
+$ret = $cosApi->copyFile($bucket, $dst, $dst . '_copy');
 var_dump($ret);
 
 // Move file.
-$ret = $api->moveFile($bucket, $dst, $dst . '_move');
+$ret = $cosApi->moveFile($bucket, $dst, $dst . '_move');
 var_dump($ret);
 
 // Delete file.
-$ret = $api->delFile($bucket, $dst . '_copy');
+$ret = $cosApi->delFile($bucket, $dst . '_copy');
 var_dump($ret);
-$ret = $api->delFile($bucket, $dst . '_move');
+$ret = $cosApi->delFile($bucket, $dst . '_move');
 var_dump($ret);
 
 // Delete folder.
-$ret = $api->delFolder($bucket, $folder);
+$ret = $cosApi->delFolder($bucket, $folder);
 var_dump($ret);

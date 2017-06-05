@@ -21,17 +21,15 @@ class Api {
 
     //HTTP请求超时时间
     private $timeout = 60;
+    private $endPoint = 'http://region.file.myqcloud.com/files/v2/';
     private $region = 'gz'; // default region is guangzou
     private $auth;
     private $httpClient;
     private $config;
 
     public function __construct($config) {
-        if (empty($config['app_id']) 
-        || empty($config['secret_id']) 
-        || empty($config['secret_key'])
-        || empty($config['end_point'])) {
-            throw new Exception('Config need app_id,secret_id,secret_key,end_point!');
+        if (empty($config['app_id']) || empty($config['secret_id']) || empty($config['secret_key'])) {
+            throw new Exception('Config need app_id,secret_id,secret_key!');
         }
         $this->config = $config;
         $this->auth = new Auth($config['app_id'], $config['secret_id'], $config['secret_key']);
@@ -586,8 +584,7 @@ class Api {
      * @param  string  $dstPath
      */
     private function generateResUrl($bucket, $dstPath) {
-        $endPoint = $this->config['end_point'];
-        $endPoint = str_replace('region', $this->region, $endPoint);
+        $endPoint = str_replace('region', $this->region, $this->endPoint);
 
         return $endPoint . $this->config['app_id'] . '/' . $bucket . $dstPath;
     }
@@ -745,6 +742,7 @@ class Api {
      * @return array|mixed.
      */
     public function copyFile($bucket, $srcFpath, $dstFpath, $overwrite = false) {
+        $dstFpath = $this->normalizerPath($dstFpath, false);
         $url = $this->generateResUrl($bucket, $srcFpath);
         $sign = $this->auth->createNonreusableSignature($bucket, $srcFpath);
         $data = array(
@@ -774,6 +772,7 @@ class Api {
      * @return array|mixed.
      */
     public function moveFile($bucket, $srcFpath, $dstFpath, $overwrite = false) {
+        $dstFpath = $this->normalizerPath($dstFpath, false);
         $url = $this->generateResUrl($bucket, $srcFpath);
         $sign = $this->auth->createNonreusableSignature($bucket, $srcFpath);
         $data = array(
