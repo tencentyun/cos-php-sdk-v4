@@ -92,6 +92,66 @@ class Api {
         }
     }
 
+    /**
+     * 下载文件
+     * @param  string  $bucket  bucket名称
+     * @param  string  $srcPath     本地文件路径
+     * @param  string  $dstPath     上传的文件路径
+     * @return [type]               [description]
+     */
+    public function download($bucket, $srcPath, $dstPath) {
+        $srcInfo = $this->stat($bucket, $srcPath);
+        if ($srcInfo['code'] !== 0) {
+            return array(
+                'code' => self::COSAPI_PARAMS_ERROR,
+                'message' => 'file '.$srcPath.' does not exists.',
+                'data' => array()
+            );
+        }
+
+        $url = $srcInfo['data']['source_url'];
+        $sha = $srcInfo['data']['sha'];
+        $expired = time() + self::EXPIRED_SECONDS;
+        $signature = $this->auth->createReusableSignature($expired, $bucket);
+        $req = array(
+            'url' => $url,
+            'method' => 'get',
+            'timeout' => $this->timeout,
+            'header' => array(
+                'Authorization: ' . $signature,
+            ),
+        );
+
+        $result = $this->httpClient->sendRequest($req);
+        if ($result === null) {
+            return array(
+                'code' => self::COSAPI_NETWORK_ERROR,
+                'message' => 'get file '.$srcPath.' error.',
+                'data' => array()
+            );
+        }
+        if (sha1($result) !== $sha) {
+            return array(
+                'code' => self::COSAPI_NETWORK_ERROR,
+                'message' => 'file '.$srcPath.' hash error,maybe download has not completed.',
+                'data' => array()
+            );
+        }
+        $result = file_put_contents($dstPath, $result);
+        if ($result === null) {
+            return array(
+                'code' => self::COSAPI_PARAMS_ERROR,
+                'message' => 'write file '.$dstPath.' error.',
+                'data' => array()
+            );
+        }
+        return array(
+            'code' => self::COSAPI_SUCCESS,
+            'message' => '',
+            'data' => array()
+        );
+    }
+
     /*
      * 创建目录
      * @param  string  $bucket bucket名称

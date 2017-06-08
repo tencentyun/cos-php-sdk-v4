@@ -47,6 +47,10 @@ var_dump($ret);
 $ret = $cosApi->upload($bucket, $src, $dst);
 var_dump($ret);
 
+// 下载文件
+$ret = $cosApi->download($bucket, $src, $dst);
+var_dump($ret);
+
 // 目录列表
 $ret = $cosApi->listFolder($bucket, $folder);
 var_dump($ret);
