@@ -122,26 +122,18 @@ class Api {
             ),
         );
 
-        $result = $this->httpClient->sendRequest($req);
-        if ($result === null) {
+        $result = $this->httpClient->download($req, $dstPath);
+        if ($result['code'] !== self::COSAPI_SUCCESS) {
             return array(
-                'code' => self::COSAPI_NETWORK_ERROR,
-                'message' => 'get file '.$srcPath.' error.',
+                'code' => $result['code'],
+                'message' => $result['message'],
                 'data' => array()
             );
         }
-        if (sha1($result) !== $sha) {
+        if (hash_file('sha1', $dstPath) !== $sha) {
             return array(
                 'code' => self::COSAPI_NETWORK_ERROR,
                 'message' => 'file '.$srcPath.' hash error,maybe download has not completed.',
-                'data' => array()
-            );
-        }
-        $result = file_put_contents($dstPath, $result);
-        if ($result === null) {
-            return array(
-                'code' => self::COSAPI_PARAMS_ERROR,
-                'message' => 'write file '.$dstPath.' error.',
                 'data' => array()
             );
         }
