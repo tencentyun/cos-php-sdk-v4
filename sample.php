@@ -7,6 +7,7 @@ use QCloud\Cos\Api;
 $bucket = 'testbucket';
 $src = './hello.txt';
 $dst = '/testfolder/hello.txt';
+$dst2 = 'hello2.txt';
 $folder = '/testfolder';
 
 $config = array(
@@ -27,6 +28,11 @@ var_dump($ret);
 // Upload file into bucket.
 $ret = $cosApi->upload($bucket, $src, $dst);
 var_dump($ret);
+
+// Download file
+$ret = $cosApi->download($bucket, $dst, $dst2);
+var_dump($ret);
+unlink($dst2);
 
 // List folder.
 $ret = $cosApi->listFolder($bucket, $folder);
