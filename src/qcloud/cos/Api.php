@@ -844,4 +844,33 @@ class Api {
 
         return $this->sendRequest($req);
     }
+
+    /**
+     * Get file's url for downloading.
+     * @param $bucket bucket name.
+     * @param $fpath file path.
+     * @param $expireAfterSecs url will expire after this secconds.
+     * @return array|mixed.
+     */
+    public function getDownloadUrl($bucket, $fpath, $expireAfterSecs) {
+        $fpath = $this->normalizerPath($fpath, false);
+        $expiration = time() + $expireAfterSecs;
+        $signature = $this->auth->createReusableSignature($expiration, $bucket);
+        $appId = $this->config['app_id'];
+        $region = $this->config['region'];
+
+        $accessUrl = "http://$bucket-$appId.file.myqcloud.com$fpath?sign=$signature";
+        $sourceUrl = "http://$bucket-$appId.cos${region}.myqcloud.com$fpath?sign=$signature";
+        $url = "http://$region.file.myqcloud.com/files/v2/${appId}${fpath}?sign=$signature";
+
+        return array(
+            'code' => 0,
+            'message' => 'SUCCESS',
+            'data' => array(
+                'access_url' => $accessUrl,
+                'source_url' => $sourceUrl,
+                'url' => $url,
+            ),
+        );
+    }
 }
