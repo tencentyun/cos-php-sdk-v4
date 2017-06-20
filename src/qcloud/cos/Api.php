@@ -794,7 +794,8 @@ class Api {
      * @return array|mixed.
      */
     public function copyFile($bucket, $srcFpath, $dstFpath, $overwrite = false) {
-        $dstFpath = $this->normalizerPath($dstFpath, false);
+        $srcFpath = $this->normalizerPath($srcFpath, false);
+        $srcFpath = $this->cosUrlEncode($srcFpath);
         $url = $this->generateResUrl($bucket, $srcFpath);
         $sign = $this->auth->createNonreusableSignature($bucket, $srcFpath);
         $data = array(
@@ -824,7 +825,8 @@ class Api {
      * @return array|mixed.
      */
     public function moveFile($bucket, $srcFpath, $dstFpath, $overwrite = false) {
-        $dstFpath = $this->normalizerPath($dstFpath, false);
+        $srcFpath = $this->normalizerPath($srcFpath, false);
+        $srcFpath = $this->cosUrlEncode($srcFpath);
         $url = $this->generateResUrl($bucket, $srcFpath);
         $sign = $this->auth->createNonreusableSignature($bucket, $srcFpath);
         $data = array(
