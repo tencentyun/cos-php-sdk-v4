@@ -29,7 +29,7 @@ class Api {
 
     public function __construct($config) {
         if (empty($config['app_id']) || empty($config['secret_id']) || empty($config['secret_key'])) {
-            throw new Exception('Config need app_id,secret_id,secret_key!');
+            throw new \Exception('Config need app_id,secret_id,secret_key!');
         }
         $this->config = $config;
         $this->auth = new Auth($config['app_id'], $config['secret_id'], $config['secret_key']);
