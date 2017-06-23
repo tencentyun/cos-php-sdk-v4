@@ -80,7 +80,7 @@ class HttpClient {
             }
         }else if( $ssl ){
             curl_setopt($this->curlHandler, CURLOPT_SSL_VERIFYPEER,false);   //true any ca
-            curl_setopt($this->curlHandler, CURLOPT_SSL_VERIFYHOST,1);       //check only host
+            curl_setopt($this->curlHandler, CURLOPT_SSL_VERIFYHOST, 0);       //do not check
             if (isset($request['ssl_version'])) {
                 curl_setopt($this->curlHandler, CURLOPT_SSLVERSION, $request['ssl_version']);
             } else {
