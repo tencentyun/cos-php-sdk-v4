@@ -430,7 +430,7 @@ class Api {
 
         return array(
                     'code' => 0,
-                    'message' => 'success',
+                    'message' => 'SUCCESS',
                     'request_id' => $sliceUploading->getRequestId(),
                     'data' => array(
                         'access_url' => $sliceUploading->getAccessUrl(),
