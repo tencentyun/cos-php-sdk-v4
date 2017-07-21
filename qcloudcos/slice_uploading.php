@@ -230,7 +230,7 @@ class SliceUploading {
 
     private function clearError() {
         $this->errorCode = COSAPI_SUCCESS;
-        $this->errorMessage = 'success';
+        $this->errorMessage = 'SUCCESS';
     }
 
     private function setError($errorCode, $errorMessage) {
@@ -244,7 +244,7 @@ class SliceUploading {
         }
 
         $requestErrorCode = COSAPI_SUCCESS;
-        $requestErrorMessage = 'success';
+        $requestErrorMessage = 'SUCCESS';
         $retryCount = $request->userData['retryCount'];
 
         $responseJson = json_decode($response->body, true);
