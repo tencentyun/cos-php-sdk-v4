@@ -45,7 +45,7 @@ class Auth {
             }
 
             $fileId = '/' . $appId . '/' . $bucket . $filepath;
-            return encodeKey($this->createSignature($appId, $secretId, $secretKey, $expiration, $bucket, $fileId));
+            return $this->createSignature($appId, $secretId, $secretKey, $expiration, $bucket, $fileId);
         }
     }
 
@@ -85,6 +85,7 @@ class Auth {
 
         $now = time();
         $random = rand();
+        $fileId = $this->encodeKey($fileId);
         $plainText = "a=$appId&b=$bucket&k=$secretId&e=$expiration&t=$now&r=$random&f=$fileId";
         $bin = hash_hmac('SHA1', $plainText, $secretKey, true);
         $bin = $bin.$plainText;
