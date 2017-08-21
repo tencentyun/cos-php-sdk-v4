@@ -44,7 +44,8 @@ class Auth {
                 $filepath = '/' . $filepath;
             }
 
-            return $this->createSignature($appId, $secretId, $secretKey, $expiration, $bucket, $filepath);
+            $fileId = '/' . $appId . '/' . $bucket . $filepath;
+            return encodeKey($this->createSignature($appId, $secretId, $secretKey, $expiration, $bucket, $fileId));
         }
     }
 
@@ -84,12 +85,15 @@ class Auth {
 
         $now = time();
         $random = rand();
-        $plainText = "a=$appId&k=$secretId&e=$expiration&t=$now&r=$random&f=$fileId&b=$bucket";
+        $plainText = "a=$appId&b=$bucket&k=$secretId&e=$expiration&t=$now&r=$random&f=$fileId";
         $bin = hash_hmac('SHA1', $plainText, $secretKey, true);
         $bin = $bin.$plainText;
 
         $signature = base64_encode($bin);
 
         return $signature;
+    }
+    public static function encodeKey($key) {
+        return str_replace('%2F', '/', rawurlencode($key));
     }
 }
