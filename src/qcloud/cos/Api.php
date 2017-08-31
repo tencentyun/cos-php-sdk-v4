@@ -130,13 +130,6 @@ class Api {
                 'data' => array()
             );
         }
-        if (hash_file('sha1', $dstPath) !== $sha) {
-            return array(
-                'code' => self::COSAPI_NETWORK_ERROR,
-                'message' => 'file '.$srcPath.' hash error,maybe download has not completed.',
-                'data' => array()
-            );
-        }
         return array(
             'code' => self::COSAPI_SUCCESS,
             'message' => '',
