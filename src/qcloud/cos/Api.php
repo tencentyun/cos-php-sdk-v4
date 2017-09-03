@@ -185,16 +185,15 @@ class Api {
      * @param  string  $path     目录路径，sdk会补齐末尾的 '/'
      * @param  int     $num      拉取的总数
      * @param  string  $pattern  eListBoth,ListDirOnly,eListFileOnly  默认both
-     * @param  int     $order    默认正序(=0), 填1为反序,
      * @param  string  $offset   透传字段,用于翻页,前端不需理解,需要往前/往后翻页则透传回来
      */
     public function listFolder(
                     $bucket, $folder, $num = 20,
-                    $pattern = 'eListBoth', $order = 0,
+                    $pattern = 'eListBoth',
                     $context = null) {
         $folder = $this->normalizerPath($folder, True);
 
-        return $this->listBase($bucket, $folder, $num, $pattern, $order, $context);
+        return $this->listBase($bucket, $folder, $num, $pattern, $context);
     }
 
     /*
@@ -203,16 +202,15 @@ class Api {
      * @param  string  $prefix   列出含此前缀的所有文件
      * @param  int     $num      拉取的总数
      * @param  string  $pattern  eListBoth(默认),ListDirOnly,eListFileOnly
-     * @param  int     $order    默认正序(=0), 填1为反序,
      * @param  string  $offset   透传字段,用于翻页,前端不需理解,需要往前/往后翻页则透传回来
      */
     public function prefixSearch(
                     $bucket, $prefix, $num = 20,
-                    $pattern = 'eListBoth', $order = 0,
+                    $pattern = 'eListBoth',
                     $context = null) {
         $path = $this->normalizerPath($prefix);
 
-        return $this->listBase($bucket, $prefix, $num, $pattern, $order, $context);
+        return $this->listBase($bucket, $prefix, $num, $pattern, $context);
     }
 
     /*
@@ -439,11 +437,10 @@ class Api {
      * @param  string  $path       文件夹路径
      * @param  int     $num        拉取的总数
      * @param  string  $pattern    eListBoth(默认),ListDirOnly,eListFileOnly
-     * @param  int     $order      默认正序(=0), 填1为反序,
      * @param  string  $context    在翻页查询时候用到
      */
     private function listBase(
-            $bucket, $path, $num = 20, $pattern = 'eListBoth', $order = 0, $context = null) {
+            $bucket, $path, $num = 20, $pattern = 'eListBoth', $context = null) {
         $path = $this->cosUrlEncode($path);
         $expired = time() + self::EXPIRED_SECONDS;
         $url = $this->generateResUrl($bucket, $path);
@@ -460,14 +457,6 @@ class Api {
                     );
         }
         $data['pattern'] = $pattern;
-
-        if ($order != 0 && $order != 1) {
-            return array(
-                        'code' => self::COSAPI_PARAMS_ERROR,
-                        'message' => 'parameter order invalid',
-                    );
-        }
-		$data['order'] = $order;
 
 		if ($num < 0 || $num > 199) {
             return array(
