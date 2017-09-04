@@ -184,16 +184,14 @@ class Api {
      * @param  string  $bucket bucket名称
      * @param  string  $path     目录路径，sdk会补齐末尾的 '/'
      * @param  int     $num      拉取的总数
-     * @param  string  $pattern  eListBoth,ListDirOnly,eListFileOnly  默认both
      * @param  string  $offset   透传字段,用于翻页,前端不需理解,需要往前/往后翻页则透传回来
      */
     public function listFolder(
                     $bucket, $folder, $num = 20,
-                    $pattern = 'eListBoth',
                     $context = null) {
         $folder = $this->normalizerPath($folder, True);
 
-        return $this->listBase($bucket, $folder, $num, $pattern, $context);
+        return $this->listBase($bucket, $folder, $num, $context);
     }
 
     /*
@@ -201,16 +199,14 @@ class Api {
      * @param  string  $bucket bucket名称
      * @param  string  $prefix   列出含此前缀的所有文件
      * @param  int     $num      拉取的总数
-     * @param  string  $pattern  eListBoth(默认),ListDirOnly,eListFileOnly
      * @param  string  $offset   透传字段,用于翻页,前端不需理解,需要往前/往后翻页则透传回来
      */
     public function prefixSearch(
                     $bucket, $prefix, $num = 20,
-                    $pattern = 'eListBoth',
                     $context = null) {
         $path = $this->normalizerPath($prefix);
 
-        return $this->listBase($bucket, $prefix, $num, $pattern, $context);
+        return $this->listBase($bucket, $prefix, $num, $context);
     }
 
     /*
@@ -436,11 +432,10 @@ class Api {
      * @param  string  $bucket bucket名称
      * @param  string  $path       文件夹路径
      * @param  int     $num        拉取的总数
-     * @param  string  $pattern    eListBoth(默认),ListDirOnly,eListFileOnly
      * @param  string  $context    在翻页查询时候用到
      */
     private function listBase(
-            $bucket, $path, $num = 20, $pattern = 'eListBoth', $context = null) {
+            $bucket, $path, $num = 20, $context = null) {
         $path = $this->cosUrlEncode($path);
         $expired = time() + self::EXPIRED_SECONDS;
         $url = $this->generateResUrl($bucket, $path);
@@ -449,14 +444,6 @@ class Api {
         $data = array(
             'op' => 'list',
         );
-
-        if ($this->isPatternValid($pattern) == false) {
-            return array(
-                    'code' => self::COSAPI_PARAMS_ERROR,
-                    'message' => 'parameter pattern invalid',
-                    );
-        }
-        $data['pattern'] = $pattern;
 
 		if ($num < 0 || $num > 199) {
             return array(
@@ -687,18 +674,6 @@ class Api {
      */
     private function isAuthorityValid($authority) {
         if ($authority == 'eInvalid' || $authority == 'eWRPrivate' || $authority == 'eWPrivateRPublic') {
-            return true;
-	    }
-	    return false;
-    }
-
-    /**
-     * 判断pattern值是否正确
-     * @param  string  $authority
-     * @return [type]  bool
-     */
-    private function isPatternValid($pattern) {
-        if ($pattern == 'eListBoth' || $pattern == 'eListDirOnly' || $pattern == 'eListFileOnly') {
             return true;
 	    }
 	    return false;
