@@ -81,6 +81,15 @@ class Api {
                     );
         }
 
+        if (!$dstPath || !is_string($dstPath)
+                      || $dstPath[strlen($dstPath) - 1] == '/') {
+            return array(
+                        'code' => self::COSAPI_PARAMS_ERROR,
+                        'message' => 'dstPath ' . $dstPath .' invalid',
+                        'data' => array()
+                    );
+        }
+
         $dstPath = $this->normalizerPath($dstPath, false);
 
         //文件大于20M则使用分片传输
