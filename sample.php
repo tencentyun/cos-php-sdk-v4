@@ -4,12 +4,17 @@ require('./include.php');
 
 use QCloud\Cos\Api;
 
+//bucketname
 $bucket = 'testbucket';
+//uploadlocalpath
 $src = './hello.txt';
+//cospath
 $dst = '/testfolder/hello.txt';
+//downloadlocalpath
 $dst2 = 'hello2.txt';
+//cosfolderpath
 $folder = '/testfolder';
-
+//config your information
 $config = array(
     'app_id' => '',
     'secret_id' => '',
