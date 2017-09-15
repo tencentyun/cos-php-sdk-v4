@@ -101,6 +101,66 @@ class Api {
         }
     }
 
+    /* *
+     * 上传内存中的内容
+     * @param  string  $bucket      bucket名称
+     * @param  string  $content     文件内容，二进制安全
+     * @param  string  $dstPath     上传的文件路径
+     * @param  string  $bizAttr     文件属性
+     * @param  int     $insertOnly  是否覆盖同名文件:0 覆盖,1:不覆盖
+     *
+     * */
+    public function uploadBuffer(
+        $bucket, $content, $dstPath,
+        $bizAttr=null, $insertOnly=null) {
+
+	    if (strlen($content) >= self::MAX_UNSLICE_FILE_SIZE) {
+		    return array(
+                'code' => self::COSAPI_PARAMS_ERROR,
+                'message' => 'content larger then 20M, not supported',
+                'data' => array()
+            );
+	    }
+
+        if (!$dstPath || !is_string($dstPath)
+                      || $dstPath[strlen($dstPath) - 1] == '/') {
+            return array(
+                        'code' => self::COSAPI_PARAMS_ERROR,
+                        'message' => 'dstPath ' . $dstPath .' invalid',
+                        'data' => array()
+                    );
+        }
+
+	    $dstPath = $this->cosUrlEncode($dstPath);
+        $expired = time() + self::EXPIRED_SECONDS;
+        $url = $this->generateResUrl($bucket, $dstPath);
+        $signature = $this->auth->createReusableSignature($expired, $bucket);
+        $fileSha = sha1($content);
+
+        $data = array(
+            'op' => 'upload',
+            'sha' => $fileSha,
+            'biz_attr' => (isset($bizAttr) ? $bizAttr : ''),
+            'filecontent' => $content,
+        );
+
+        if (isset($insertOnly) && strlen($insertOnly) > 0) {
+            $data['insertOnly'] = (($insertOnly == 0 || $insertOnly == '0' ) ? 0 : 1);
+        }
+
+        $req = array(
+            'url' => $url,
+            'method' => 'post',
+            'timeout' => $this->timeout,
+            'data' => $data,
+            'header' => array(
+                'Authorization: ' . $signature,
+            ),
+        );
+
+        return $this->sendRequest($req);
+    }
+
     /**
      * 下载文件
      * @param  string  $bucket  bucket名称
