@@ -101,7 +101,7 @@ class HttpClient {
      *                   timeout    : 请求超时时间
      *                   cert       : ca文件路径
      *                   ssl_version: SSL版本号
-     * @param  string $dstPath 下载保存文件
+     * @param  string|resource $dstPath 类型为字符串，参数为文件保存地址，类型为resource，参数为文件资源
      * @return bool    下载是否成功
      */
     public function download($request, $dstPath) {
@@ -167,7 +167,11 @@ class HttpClient {
             }
         }
 
-        $fp = fopen($dstPath, 'wb');
+        if (gettype($dstPath) === 'string') {
+            $fp = fopen($dstPath, 'wb');
+        } else {
+            $fp = $dstPath;
+        }
         if (!$fp) {
             return array(
                 'code' => Api::COSAPI_PARAMS_ERROR,
