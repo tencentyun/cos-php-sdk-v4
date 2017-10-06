@@ -348,7 +348,7 @@ class Api {
      * @return array                            返回结果数组
      */
     public function update($bucket, $path,
-                  $bizAttr = '', $authority = null, $customerHeaders = array()) {
+                  $bizAttr = '', $authority = '', $customerHeaders = array()) {
         $path = $this->normalizerPath($path);
 
         return $this->updateBase($bucket, $path, $bizAttr, $authority, $customerHeaders);
