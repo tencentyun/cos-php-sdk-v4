@@ -3,30 +3,41 @@
 namespace QCloud\Cos;
 
 class Api {
-    //版本
+    /* 版本 */
     const VERSION = 'v4.3.7';
-    //计算sign签名的时间参数
+    /* 签名超时时间 */
     const EXPIRED_SECONDS = 180;
-    //1M
+    /* 分片大小-512K */
+    const SLICE_SIZE_512K = 524288;
+    /* 分片大小-1M */
     const SLICE_SIZE_1M = 1048576;
-    //20M 大于20M的文件需要进行分片传输
+    /* 分片大小-2M */
+    const SLICE_SIZE_2M = 2097152;
+    /* 分片大小-3M */
+    const SLICE_SIZE_3M = 3145728;
+    /* 20M 大于20M的文件需要进行分片传输 */
     const MAX_UNSLICE_FILE_SIZE = 20971520;
-	//失败尝试次数
+	/* 失败尝试次数 */
     const MAX_RETRY_TIMES = 3;
-    //错误代码
+    /* 错误代码 */
     const COSAPI_SUCCESS         = 0;
     const COSAPI_PARAMS_ERROR    = -1;
     const COSAPI_NETWORK_ERROR   = -2;
     const COSAPI_INTEGRITY_ERROR = -3;
 
-    //HTTP请求超时时间
+    /* HTTP请求超时时间 */
     private $timeout = 60;
     private $endPoint = 'http://region.file.myqcloud.com/files/v2/';
-    private $region = 'gz'; // default region is guangzou
+    /* 默认区域是广州 */
+    private $region = 'gz';
     private $auth;
     private $httpClient;
     private $config;
 
+    /**
+     * 构造函数
+     * @param  array  $config  配置数组
+     */
     public function __construct($config) {
         if (empty($config['app_id']) || empty($config['secret_id']) || empty($config['secret_key'])) {
             throw new \Exception('Config need app_id,secret_id,secret_key!');
@@ -47,6 +58,7 @@ class Api {
 	/**
      * 设置HTTP请求超时时间
      * @param  int  $timeout  超时时长
+     * @return bool           设置是否成功
      */
     public function setTimeout($timeout = 60) {
         if (!is_int($timeout) || $timeout < 0) {
@@ -57,22 +69,26 @@ class Api {
         return true;
     }
 
+    /**
+     * 设置区域
+     * @param string $region 区域
+     */
     public function setRegion($region) {
         $this->region = $region;
     }
 
     /**
      * 上传文件,自动判断文件大小,如果小于20M则使用普通文件上传,大于20M则使用分片上传
-     * @param  string  $bucket   bucket名称
+     * @param  string  $bucket       bucket名称
      * @param  string  $srcPath      本地文件路径
      * @param  string  $dstPath      上传的文件路径
      * @param  string  $bizAttr      文件属性
-     * @param  string  $slicesize    分片大小(512k,1m,2m,3m)，默认:1m
-     * @param  string  $insertOnly   同名文件是否覆盖
-     * @return [type]                [description]
+     * @param  int     $slicesize    分片大小(512k, 1m, 2m, 3m)，默认: 1m (SLICE_SIZE_1M)
+     * @param  int     $insertOnly   同名文件是否覆盖，默认为1，不覆盖
+     * @return array                 返回结果数组
      */
     public function upload(
-            $bucket, $srcPath, $dstPath, $bizAttr=null, $sliceSize=null, $insertOnly=null) {
+            $bucket, $srcPath, $dstPath, $bizAttr = '', $sliceSize = self::SLICE_SIZE_1M, $insertOnly = 1) {
         if (!file_exists($srcPath)) {
             return array(
                         'code' => self::COSAPI_PARAMS_ERROR,
@@ -92,7 +108,7 @@ class Api {
 
         $dstPath = $this->normalizerPath($dstPath, false);
 
-        //文件大于20M则使用分片传输
+        /* 文件大于20M则使用分片传输 */
         if (filesize($srcPath) < self::MAX_UNSLICE_FILE_SIZE ) {
             return $this->uploadFile($bucket, $srcPath, $dstPath, $bizAttr, $insertOnly);
         } else {
@@ -101,18 +117,17 @@ class Api {
         }
     }
 
-    /* *
+    /**
      * 上传内存中的内容
      * @param  string  $bucket      bucket名称
      * @param  string  $content     文件内容，二进制安全
      * @param  string  $dstPath     上传的文件路径
      * @param  string  $bizAttr     文件属性
-     * @param  int     $insertOnly  是否覆盖同名文件:0 覆盖,1:不覆盖
-     *
-     * */
+     * @param  int     $insertOnly  是否覆盖同名文件:0 覆盖,1:不覆盖，默认值1，不覆盖
+     * @return array                返回结果数组
+     **/
     public function uploadBuffer(
-        $bucket, $content, $dstPath,
-        $bizAttr=null, $insertOnly=null) {
+        $bucket, $content, $dstPath, $bizAttr = '', $insertOnly = 1) {
 
 	    if (strlen($content) >= self::MAX_UNSLICE_FILE_SIZE) {
 		    return array(
@@ -140,13 +155,11 @@ class Api {
         $data = array(
             'op' => 'upload',
             'sha' => $fileSha,
-            'biz_attr' => (isset($bizAttr) ? $bizAttr : ''),
+            'biz_attr' => $bizAttr,
             'filecontent' => $content,
         );
 
-        if (isset($insertOnly) && strlen($insertOnly) > 0) {
-            $data['insertOnly'] = (($insertOnly == 0 || $insertOnly == '0' ) ? 0 : 1);
-        }
+        $data['insertOnly'] = (($insertOnly == 0 || $insertOnly == '0' ) ? 0 : 1);
 
         $req = array(
             'url' => $url,
@@ -163,10 +176,10 @@ class Api {
 
     /**
      * 下载文件
-     * @param  string  $bucket  bucket名称
-     * @param  string  $srcPath     本地文件路径
-     * @param  string  $dstPath     上传的文件路径
-     * @return [type]               [description]
+     * @param  string  $bucket      bucket名称
+     * @param  string  $srcPath     远程文件路径
+     * @param  string  $dstPath     下载目标文件路径
+     * @return array                返回结果数组
      */
     public function download($bucket, $srcPath, $dstPath) {
         $srcInfo = $this->stat($bucket, $srcPath);
@@ -206,11 +219,12 @@ class Api {
         );
     }
 
-    /*
+    /**
      * 创建目录
-     * @param  string  $bucket bucket名称
-     * @param  string  $folder       目录路径
-	 * @param  string  $bizAttr    目录属性
+     * @param  string  $bucket     bucket名称
+     * @param  string  $folder     目录路径
+     * @param  string  $bizAttr    目录属性
+     * @return array               返回结果数组
      */
     public function createFolder($bucket, $folder, $bizAttr = null) {
         if (!$this->isValidPath($folder)) {
@@ -248,16 +262,15 @@ class Api {
         return $this->sendRequest($req);
     }
 
-    /*
+    /**
      * 目录列表
-     * @param  string  $bucket bucket名称
-     * @param  string  $path     目录路径，sdk会补齐末尾的 '/'
-     * @param  int     $num      拉取的总数
-     * @param  string  $offset   透传字段,用于翻页,前端不需理解,需要往前/往后翻页则透传回来
+     * @param  string  $bucket    bucket名称
+     * @param  string  $path      目录路径，sdk会补齐末尾的 '/'
+     * @param  int     $num       本次拉取的总数，取值范围1-199，默认值20
+     * @param  string  $context   列表开始条目, 用于获取大于本次拉取总数的列表清单或翻页，其值取于前一次结果的$result['data']['context'];
+     * @return array              返回结果数组
      */
-    public function listFolder(
-                    $bucket, $folder, $num = 20,
-                    $context = null) {
+    public function listFolder($bucket, $folder, $num = 20, $context = '') {
         $folder = $this->normalizerPath($folder, True);
 
         return $this->listBase($bucket, $folder, $num, $context);
@@ -265,14 +278,13 @@ class Api {
 
     /*
      * 目录列表(前缀搜索)
-     * @param  string  $bucket bucket名称
+     * @param  string  $bucket   bucket名称
      * @param  string  $prefix   列出含此前缀的所有文件
      * @param  int     $num      拉取的总数
-     * @param  string  $offset   透传字段,用于翻页,前端不需理解,需要往前/往后翻页则透传回来
+     * @param  string  $context  列表开始条目, 用于获取大于本次拉取总数的列表清单或翻页，其值取于前一次结果的$result['data']['context'];
+     * @return array             返回结果数组
      */
-    public function prefixSearch(
-                    $bucket, $prefix, $num = 20,
-                    $context = null) {
+    public function prefixSearch($bucket, $prefix, $num = 20, $context = '') {
         $path = $this->normalizerPath($prefix);
 
         return $this->listBase($bucket, $prefix, $num, $context);
@@ -280,11 +292,12 @@ class Api {
 
     /*
      * 目录更新
-     * @param  string  $bucket bucket名称
-     * @param  string  $folder      文件夹路径,SDK会补齐末尾的 '/'
+     * @param  string  $bucket    bucket名称
+     * @param  string  $folder    文件夹路径,SDK会补齐末尾的 '/'
      * @param  string  $bizAttr   目录属性
+     * @return array              返回结果数组
      */
-    public function updateFolder($bucket, $folder, $bizAttr = null) {
+    public function updateFolder($bucket, $folder, $bizAttr = '') {
         $folder = $this->normalizerPath($folder, True);
 
         return $this->updateBase($bucket, $folder, $bizAttr);
@@ -292,8 +305,9 @@ class Api {
 
    /*
      * 查询目录信息
-     * @param  string  $bucket bucket名称
-     * @param  string  $folder       目录路径
+     * @param  string  $bucket    bucket名称
+     * @param  string  $folder    目录路径
+     * @return array              返回结果数组
      */
     public function statFolder($bucket, $folder) {
         $folder = $this->normalizerPath($folder, True);
@@ -302,10 +316,10 @@ class Api {
     }
 
     /*
-     * 删除目录
-     * @param  string  $bucket bucket名称
-     * @param  string  $folder       目录路径
-	 *  注意不能删除bucket下根目录/
+     * 删除目录，注意不能删除bucket下根目录/
+     * @param  string  $bucket  bucket名称
+     * @param  string  $folder  目录路径
+	 * @return array            返回结果数组
      */
     public function delFolder($bucket, $folder) {
         if (empty($bucket) || empty($folder)) {
@@ -321,27 +335,30 @@ class Api {
 
     /*
      * 更新文件
-     * @param  string  $bucket  bucket名称
-     * @param  string  $path        文件路径
-     * @param  string  $authority:  eInvalid(继承Bucket的读写权限)/eWRPrivate(私有读写)/eWPrivateRPublic(公有读私有写)
-	 * @param  array   $customer_headers_array 携带的用户自定义头域,包括
+     * @param  string  $bucket                  bucket名称
+     * @param  string  $path                    文件路径
+     * @param  string  $bizAttr                 文件属性
+     * @param  string  $authority               文件权限，可选值：eInvalid(继承Bucket的读写权限)/eWRPrivate(私有读写)/eWPrivateRPublic(公有读私有写)
+	 * @param  array   $customerHeaders  携带的用户自定义头域,包括
      * 'Cache-Control' => '*'
      * 'Content-Type' => '*'
      * 'Content-Disposition' => '*'
      * 'Content-Language' => '*'
      * 'x-cos-meta-自定义内容' => '*'
+     * @return array                            返回结果数组
      */
     public function update($bucket, $path,
-                  $bizAttr = null, $authority=null,$customer_headers_array=null) {
+                  $bizAttr = '', $authority = '', $customerHeaders = array()) {
         $path = $this->normalizerPath($path);
 
-        return $this->updateBase($bucket, $path, $bizAttr, $authority, $customer_headers_array);
+        return $this->updateBase($bucket, $path, $bizAttr, $authority, $customerHeaders);
     }
 
     /*
      * 查询文件信息
      * @param  string  $bucket  bucket名称
-     * @param  string  $path        文件路径
+     * @param  string  $path    文件路径
+     * @return array            返回结果数组
      */
     public function stat($bucket, $path) {
         $path = $this->normalizerPath($path);
@@ -351,8 +368,9 @@ class Api {
 
     /*
      * 删除文件
-     * @param  string  $bucket
-     * @param  string  $path      文件路径
+     * @param  string  $bucket  bucket名称
+     * @param  string  $path    文件路径
+     * @return array            返回结果数组
      */
     public function delFile($bucket, $path) {
         if (empty($bucket) || empty($path)) {
@@ -368,14 +386,14 @@ class Api {
 
     /**
      * 内部方法, 上传文件
-     * @param  string  $bucket  bucket名称
+     * @param  string  $bucket      bucket名称
      * @param  string  $srcPath     本地文件路径
      * @param  string  $dstPath     上传的文件路径
      * @param  string  $bizAttr     文件属性
-     * @param  int     $insertOnly  是否覆盖同名文件:0 覆盖,1:不覆盖
-     * @return [type]               [description]
+     * @param  int     $insertOnly  是否覆盖同名文件:0 覆盖,1:不覆盖，默认值1，不覆盖
+     * @return array                返回结果数组
      */
-    private function uploadFile($bucket, $srcPath, $dstPath, $bizAttr = null, $insertOnly = null) {
+    private function uploadFile($bucket, $srcPath, $dstPath, $bizAttr = '', $insertOnly = 1) {
         $srcPath = realpath($srcPath);
 	    $dstPath = $this->cosUrlEncode($dstPath);
 
@@ -395,14 +413,11 @@ class Api {
         $data = array(
             'op' => 'upload',
             'sha' => $fileSha,
-            'biz_attr' => (isset($bizAttr) ? $bizAttr : ''),
+            'biz_attr' => $bizAttr,
         );
 
         $data['filecontent'] = file_get_contents($srcPath);
-
-        if (isset($insertOnly) && strlen($insertOnly) > 0) {
-            $data['insertOnly'] = (($insertOnly == 0 || $insertOnly == '0' ) ? 0 : 1);
-        }
+        $data['insertOnly'] = (($insertOnly == 0 || $insertOnly == '0' ) ? 0 : 1);
 
         $req = array(
             'url' => $url,
@@ -419,23 +434,22 @@ class Api {
 
     /**
      * 内部方法,上传文件
-     * @param  string  $bucket  bucket名称
+     * @param  string  $bucket      bucket名称
      * @param  string  $srcPath     本地文件路径
      * @param  string  $dstPath     上传的文件路径
      * @param  string  $bizAttr     文件属性
      * @param  string  $sliceSize   分片大小
-     * @param  int     $insertOnly  是否覆盖同名文件:0 覆盖,1:不覆盖
-     * @return [type]                [description]
+     * @param  int     $insertOnly  是否覆盖同名文件:0 覆盖,1:不覆盖，默认值1，不覆盖
+     * @return array                返回结果数组
      */
     private function uploadBySlicing(
-            $bucket, $srcFpath,  $dstFpath, $bizAttr=null, $sliceSize=null, $insertOnly=null) {
+            $bucket, $srcFpath,  $dstFpath, $bizAttr = '', $sliceSize = self::SLICE_SIZE_1M, $insertOnly = 1) {
         $srcFpath = realpath($srcFpath);
         $fileSize = filesize($srcFpath);
         $dstFpath = $this->cosUrlEncode($dstFpath);
         $url = $this->generateResUrl($bucket, $dstFpath);
         $sliceCount = ceil($fileSize / $sliceSize);
-        // expiration seconds for one slice mutiply by slice count
-        // will be the expired seconds for whole file
+        /* 超时时间为单个分片超时时间乘以总分片数 */
         $expiration = time() + (self::EXPIRED_SECONDS * $sliceCount);
         if ($expiration >= (time() + 10 * 24 * 60 * 60)) {
             $expiration = time() + 10 * 24 * 60 * 60;
@@ -454,7 +468,7 @@ class Api {
 
             $errorCode = $sliceUploading->getLastErrorCode();
             if ($errorCode === -4019) {
-                // Delete broken file and retry again on _ERROR_FILE_NOT_FINISH_UPLOAD error.
+                /* 当返回 _ERROR_FILE_NOT_FINISH_UPLOAD 错误时，删除发生错误的文件 */
                 Cosapi::delFile($bucket, $dstFpath);
                 continue;
             }
@@ -496,15 +510,14 @@ class Api {
                 );
     }
 
-    /*
+    /**
      * 内部公共函数
-     * @param  string  $bucket bucket名称
+     * @param  string  $bucket     bucket名称
      * @param  string  $path       文件夹路径
      * @param  int     $num        拉取的总数
      * @param  string  $context    在翻页查询时候用到
      */
-    private function listBase(
-            $bucket, $path, $num = 20, $context = null) {
+    private function listBase($bucket, $path, $num = 20, $context = '') {
         $path = $this->cosUrlEncode($path);
         $expired = time() + self::EXPIRED_SECONDS;
         $url = $this->generateResUrl($bucket, $path);
@@ -522,7 +535,7 @@ class Api {
 		}
         $data['num'] = $num;
 
-        if (isset($context)) {
+        if ($context !== '') {
             $data['context'] = $context;
         }
 
@@ -540,21 +553,22 @@ class Api {
         return $this->sendRequest($req);
     }
 
-    /*
+    /**
      * 内部公共方法(更新文件和更新文件夹)
-     * @param  string  $bucket  bucket名称
-     * @param  string  $path        路径
-     * @param  string  $bizAttr     文件/目录属性
-     * @param  string  $authority:  eInvalid/eWRPrivate(私有)/eWPrivateRPublic(公有读写)
-	 * @param  array   $customer_headers_array 携带的用户自定义头域,包括
+     * @param  string  $bucket           bucket名称
+     * @param  string  $path             路径
+     * @param  string  $bizAttr          文件/目录属性
+     * @param  string  $authority        eInvalid/eWRPrivate(私有)/eWPrivateRPublic(公有读写)
+	 * @param  array   $customerHeaders  携带的用户自定义头域,包括
      * 'Cache-Control' => '*'
      * 'Content-Type' => '*'
      * 'Content-Disposition' => '*'
      * 'Content-Language' => '*'
      * 'x-cos-meta-自定义内容' => '*'
+     * @return array                            返回结果数组
      */
     private function updateBase(
-            $bucket, $path, $bizAttr = null, $authority = null, $custom_headers_array = null) {
+            $bucket, $path, $bizAttr = '', $authority = '', $customerHeaders = array()) {
         $path = $this->cosUrlEncode($path);
         $expired = time() + self::EXPIRED_SECONDS;
         $url = $this->generateResUrl($bucket, $path);
@@ -576,9 +590,9 @@ class Api {
 	        $data['authority'] = $authority;
 	    }
 
-	    if (isset($custom_headers_array)) {
+	    if (isset($customerHeaders)) {
 	        $data['custom_headers'] = array();
-	        $this->add_customer_header($data['custom_headers'], $custom_headers_array);
+	        $this->addCustomerHeader($data['custom_headers'], $customerHeaders);
 	    }
 
         $data = json_encode($data);
@@ -597,10 +611,11 @@ class Api {
 		return $this->sendRequest($req);
     }
 
-    /*
-     * 内部方法
+    /**
+     * 内部方法，查询文件/目录信息
      * @param  string  $bucket  bucket名称
-     * @param  string  $path        文件/目录路径
+     * @param  string  $path    文件/目录路径
+     * @return array            返回结果数组
      */
     private function statBase($bucket, $path) {
         $path = $this->cosUrlEncode($path);
@@ -624,10 +639,11 @@ class Api {
         return $this->sendRequest($req);
     }
 
-    /*
+    /**
      * 内部私有方法
      * @param  string  $bucket  bucket名称
-     * @param  string  $path        文件/目录路径路径
+     * @param  string  $path    文件/目录路径路径
+     * @return array            返回结果数组
      */
     private function delBase($bucket, $path) {
         if ($path == "/") {
@@ -660,18 +676,20 @@ class Api {
         return $this->sendRequest($req);
     }
 
-    /*
+    /**
      * 内部公共方法, 路径编码
      * @param  string  $path 待编码路径
+     * @return string        处理后的路径
      */
 	private function cosUrlEncode($path) {
         return str_replace('%2F', '/',  rawurlencode($path));
     }
 
-    /*
+    /**
      * 内部公共方法, 构造URL
-     * @param  string  $bucket
-     * @param  string  $dstPath
+     * @param  string  $bucket   bucket名称
+     * @param  string  $dstPath  路径
+     * @return string            完整路径
      */
     private function generateResUrl($bucket, $dstPath) {
         $endPoint = str_replace('region', $this->region, $this->endPoint);
@@ -679,9 +697,10 @@ class Api {
         return $endPoint . $this->config['app_id'] . '/' . $bucket . $dstPath;
     }
 
-	/*
-     * 内部公共方法, 发送消息
-     * @param  string  $req
+	/**
+     * 内部公共方法, 发送请求
+     * @param  array  $req  请求数组
+     * @return array        返回结果数组
      */
     private function sendRequest($req) {
         $rsp = $this->httpClient->sendRequest($req);
@@ -707,30 +726,36 @@ class Api {
     }
 
     /**
-     * Get slice size.
+     * 获取分片大小
+     * @param  int  $sliceSize  分片大小
+     * @return int              修复后的分片大小
      */
 	private function getSliceSize($sliceSize) {
-        // Fix slice size to 1MB.
-        return self::SLICE_SIZE_1M;
+        if (is_int($sliceSize) && $sliceSize > 0) {
+            return $sliceSize;
+        } else {
+            return self::SLICE_SIZE_1M;
+        }
 	}
 
     /*
      * 内部方法, 规整文件路径
      * @param  string  $path      文件路径
-     * @param  string  $isfolder  是否为文件夹
+     * @param  string  $isFolder  是否为文件夹
+     * @return string             规整后的路径
      */
-	private function normalizerPath($path, $isfolder = False) {
+	private function normalizerPath($path, $isFolder = False) {
 		if (preg_match('/^\//', $path) == 0) {
             $path = '/' . $path;
         }
 
-        if ($isfolder == True) {
+        if ($isFolder == True) {
             if (preg_match('/\/$/', $path) == 0) {
                 $path = $path . '/';
             }
         }
 
-        // Remove unnecessary slashes.
+        /* 删除多余的/ */
         $path = preg_replace('#/+#', '/', $path);
 
 		return $path;
@@ -738,8 +763,8 @@ class Api {
 
     /**
      * 判断authority值是否正确
-     * @param  string  $authority
-     * @return [type]  bool
+     * @param  string  $authority  authority字符串
+     * @return bool                是否正确
      */
     private function isAuthorityValid($authority) {
         if ($authority == 'eInvalid' || $authority == 'eWRPrivate' || $authority == 'eWPrivateRPublic') {
@@ -750,10 +775,10 @@ class Api {
 
     /**
      * 判断是否符合自定义属性
-     * @param  string  $key
-     * @return [type]  bool
+     * @param  string  $key  header字符串
+     * @return bool          是否符合
      */
-    private function isCustomer_header($key) {
+    private function isCustomerHeader($key) {
         if ($key == 'Cache-Control' || $key == 'Content-Type' ||
                 $key == 'Content-Disposition' || $key == 'Content-Language' ||
                 $key == 'Content-Encoding' ||
@@ -766,22 +791,24 @@ class Api {
 	/**
      * 增加自定义属性到data中
      * @param  array  $data
-	 * @param  array  $customer_headers_array
-     * @return [type]  void
+	 * @param  array  $customerHeaders
      */
-    private function add_customer_header(&$data, &$customer_headers_array) {
-        if (count($customer_headers_array) < 1) {
+    private function addCustomerHeader(&$data, &$customerHeaders) {
+        if (count($customerHeaders) < 1) {
             return;
         }
-	    foreach($customer_headers_array as $key=>$value) {
-            if($this->isCustomer_header($key)) {
+	    foreach($customerHeaders as $key=>$value) {
+            if($this->isCustomerHeader($key)) {
 	            $data[$key] = $value;
             }
 	    }
     }
 
-    // Check |$path| is a valid file path.
-    // Return true on success, otherwise return false.
+    /**
+     * 检查路径是否正确
+     * @param  string  $path  路径
+     * @return bool           是否正确
+     */
     private function isValidPath($path) {
         if (strpos($path, '?') !== false) {
             return false;
@@ -812,12 +839,12 @@ class Api {
     }
 
     /**
-     * Copy a file.
-     * @param $bucket bucket name.
-     * @param $srcFpath source file path.
-     * @param $dstFpath destination file path.
-     * @param $overwrite if the destination location is occupied, overwrite it or not?
-     * @return array|mixed.
+     * 复制文件（COS到COS）
+     * @param  string  $bucket     bucket名称
+     * @param  string  $srcFpath   源文件路径
+     * @param  string  $dstFpath   目标文件路径
+     * @param  bool    $overwrite  目标文件存在，是否覆盖，默认值否
+     * @return array   返回结果数组
      */
     public function copyFile($bucket, $srcFpath, $dstFpath, $overwrite = false) {
         $srcFpath = $this->normalizerPath($srcFpath, false);
@@ -843,12 +870,12 @@ class Api {
     }
 
     /**
-     * Move a file.
-     * @param $bucket bucket name.
-     * @param $srcFpath source file path.
-     * @param $dstFpath destination file path.
-     * @param $overwrite if the destination location is occupied, overwrite it or not?
-     * @return array|mixed.
+     * 移动一个文件 （COS到COS）
+     * @param  string  $bucket     bucket名称
+     * @param  string  $srcFpath   源文件路径
+     * @param  string  $dstFpath   目标文件路径
+     * @param  bool    $overwrite  目标文件存在，是否覆盖，默认值否
+     * @return array   返回结果数组
      */
     public function moveFile($bucket, $srcFpath, $dstFpath, $overwrite = false) {
         $srcFpath = $this->normalizerPath($srcFpath, false);
@@ -874,11 +901,11 @@ class Api {
     }
 
     /**
-     * Get file's url for downloading.
-     * @param $bucket bucket name.
-     * @param $fpath file path.
-     * @param $expireAfterSecs url will expire after this secconds.
-     * @return array|mixed.
+     * 获取文件下载链接
+     * @param  string  $bucket           bucket名称
+     * @param  string  $fpath            文件路径
+     * @param  int     $expireAfterSecs  链接超时时间
+     * @return array                     返回结果数组
      */
     public function getDownloadUrl($bucket, $fpath, $expireAfterSecs) {
         $fpath = $this->normalizerPath($fpath, false);
