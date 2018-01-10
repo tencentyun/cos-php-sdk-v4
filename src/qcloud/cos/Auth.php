@@ -28,7 +28,7 @@ class Auth {
      * Return the signature on success.
      * Return error code if parameter is not valid.
      */
-    public function createReusableSignature($expiration, $bucket, $filepath = null) {
+    public function createReusableSignature($expiration, $bucket, $filepath = null, $uploadFlag = true) {
         $appId = $this->appId;
         $secretId = $this->secretId;
         $secretKey = $this->secretKey;
@@ -44,7 +44,11 @@ class Auth {
                 $filepath = '/' . $filepath;
             }
 
-            $fileId = '/' . $appId . '/' . $bucket . $filepath;
+            if ($uploadFlag) {
+                $fileId = '/' . $appId . '/' . $bucket . $filepath;
+            } else {
+                $fileId = $filepath;
+            }
             return $this->createSignature($appId, $secretId, $secretKey, $expiration, $bucket, $fileId);
         }
     }
@@ -67,8 +71,8 @@ class Auth {
         if (preg_match('/^\//', $filepath) == 0) {
             $filepath = '/' . $filepath;
         }
-        $fileId = '/' . $appId . '/' . $bucket . $filepath;
 
+        $fileId = '/' . $appId . '/' . $bucket . $filepath;
         return $this->createSignature($appId, $secretId, $secretKey, 0, $bucket, $fileId);
     }
 
