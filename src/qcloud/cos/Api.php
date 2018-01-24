@@ -555,10 +555,11 @@ class Api {
      */
     private function updateBase(
             $bucket, $path, $bizAttr = null, $authority = null, $custom_headers_array = null) {
+
+        $signature = $this->auth->createNonreusableSignature($bucket, $path);
         $path = $this->cosUrlEncode($path);
         $expired = time() + self::EXPIRED_SECONDS;
         $url = $this->generateResUrl($bucket, $path);
-        $signature = $this->auth->createNonreusableSignature($bucket, $path);
 
         $data = array('op' => 'update');
 
