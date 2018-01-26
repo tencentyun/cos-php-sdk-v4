@@ -1,0 +1,7 @@
+<phpunit>
+  <testsuites>
+    <testsuite name="cos">
+      <directory>src/Qcloud/Cos</directory>
+    </testsuite>
+  </testsuites>
+</phpunit>
