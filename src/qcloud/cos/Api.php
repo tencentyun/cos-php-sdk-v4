@@ -100,10 +100,10 @@ class Api {
 
         //文件大于20M则使用分片传输
         if (filesize($srcPath) < self::MAX_UNSLICE_FILE_SIZE ) {
-            return $this->uploadFile($bucket, $srcPath, $dstPath, $bizAttr, $insertOnly, $signature);
+            return $this->uploadFile($bucket, $srcPath, $dstPath, $signature, $bizAttr, $insertOnly);
         } else {
             $sliceSize = $this->getSliceSize($sliceSize);
-            return $this->uploadBySlicing($bucket, $srcPath, $dstPath, $bizAttr, $sliceSize, $insertOnly, $signature);
+            return $this->uploadBySlicing($bucket, $srcPath, $dstPath, $signature, $bizAttr, $sliceSize, $insertOnly);
         }
     }
 
@@ -381,7 +381,7 @@ class Api {
      * @param  int     $insertOnly  是否覆盖同名文件:0 覆盖,1:不覆盖
      * @return [type]               [description]
      */
-    private function uploadFile($bucket, $srcPath, $dstPath, $bizAttr = null, $insertOnly = null, $signature = null) {
+    private function uploadFile($bucket, $srcPath, $dstPath, $signature = null, $bizAttr = null, $insertOnly = null) {
         $srcPath = realpath($srcPath);
 	    $dstPath = $this->cosUrlEncode($dstPath);
 	    if (filesize($srcPath) >= self::MAX_UNSLICE_FILE_SIZE ) {
@@ -435,7 +435,7 @@ class Api {
      * @return [type]                [description]
      */
     private function uploadBySlicing(
-            $bucket, $srcFpath,  $dstFpath, $bizAttr=null, $sliceSize=null, $insertOnly=null, $signature = null) {
+            $bucket, $srcFpath,  $dstFpath, $signature = null, $bizAttr=null, $sliceSize=null, $insertOnly=null) {
         $srcFpath = realpath($srcFpath);
         $fileSize = filesize($srcFpath);
         $dstFpath = $this->cosUrlEncode($dstFpath);
