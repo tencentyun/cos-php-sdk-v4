@@ -29,7 +29,13 @@ class Api {
 
     public function __construct($config) {
         if (empty($config['app_id'])) {
-            throw new \Exception('Config need app_id,secret_id,secret_key!');
+            throw new \Exception('Config need app_id!');
+        }
+        if (empty($config['secret_id'])){
+            $config['secret_id'] = '';
+        }
+        if (empty($config['secret_key'])){
+            $config['secret_key'] = '';
         }
         $this->config = $config;
         $this->auth = new Auth($config['app_id'], $config['secret_id'], $config['secret_key']);
@@ -72,7 +78,7 @@ class Api {
      * @return [type]                [description]
      */
     public function upload(
-            $bucket, $srcPath, $dstPath, $signature, $bizAttr=null, $sliceSize=null, $insertOnly=null) {
+            $bucket, $srcPath, $dstPath, $signature=null, $bizAttr=null, $sliceSize=null, $insertOnly=null) {
         if (!file_exists($srcPath)) {
             return array(
                         'code' => self::COSAPI_PARAMS_ERROR,
