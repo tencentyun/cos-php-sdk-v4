@@ -32,10 +32,9 @@ class Auth {
         $appId = $this->appId;
         $secretId = $this->secretId;
         $secretKey = $this->secretKey;
-
-        if (empty($appId) || empty($secretId) || empty($secretKey)) {
-            return self::AUTH_SECRET_ID_KEY_ERROR;
-        }
+//        if (empty($appId) || empty($secretId) || empty($secretKey)) {
+//            return self::AUTH_SECRET_ID_KEY_ERROR;
+//        }
 
         if (empty($filepath)) {
             return $this->createSignature($appId, $secretId, $secretKey, $expiration, $bucket, null);

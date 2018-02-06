@@ -28,7 +28,7 @@ class Api {
     private $config;
 
     public function __construct($config) {
-        if (empty($config['app_id']) || empty($config['secret_id']) || empty($config['secret_key'])) {
+        if (empty($config['app_id'])) {
             throw new \Exception('Config need app_id,secret_id,secret_key!');
         }
         $this->config = $config;
@@ -72,7 +72,7 @@ class Api {
      * @return [type]                [description]
      */
     public function upload(
-            $bucket, $srcPath, $dstPath, $bizAttr=null, $sliceSize=null, $insertOnly=null) {
+            $bucket, $srcPath, $dstPath, $signature, $bizAttr=null, $sliceSize=null, $insertOnly=null) {
         if (!file_exists($srcPath)) {
             return array(
                         'code' => self::COSAPI_PARAMS_ERROR,
@@ -94,10 +94,10 @@ class Api {
 
         //文件大于20M则使用分片传输
         if (filesize($srcPath) < self::MAX_UNSLICE_FILE_SIZE ) {
-            return $this->uploadFile($bucket, $srcPath, $dstPath, $bizAttr, $insertOnly);
+            return $this->uploadFile($bucket, $srcPath, $dstPath, $bizAttr, $insertOnly, $signature);
         } else {
             $sliceSize = $this->getSliceSize($sliceSize);
-            return $this->uploadBySlicing($bucket, $srcPath, $dstPath, $bizAttr, $sliceSize, $insertOnly);
+            return $this->uploadBySlicing($bucket, $srcPath, $dstPath, $bizAttr, $sliceSize, $insertOnly, $signature);
         }
     }
 
@@ -375,10 +375,9 @@ class Api {
      * @param  int     $insertOnly  是否覆盖同名文件:0 覆盖,1:不覆盖
      * @return [type]               [description]
      */
-    private function uploadFile($bucket, $srcPath, $dstPath, $bizAttr = null, $insertOnly = null) {
+    private function uploadFile($bucket, $srcPath, $dstPath, $bizAttr = null, $insertOnly = null, $signature = null) {
         $srcPath = realpath($srcPath);
 	    $dstPath = $this->cosUrlEncode($dstPath);
-
 	    if (filesize($srcPath) >= self::MAX_UNSLICE_FILE_SIZE ) {
 		    return array(
                 'code' => self::COSAPI_PARAMS_ERROR,
@@ -389,7 +388,9 @@ class Api {
 
         $expired = time() + self::EXPIRED_SECONDS;
         $url = $this->generateResUrl($bucket, $dstPath);
-        $signature = $this->auth->createReusableSignature($expired, $bucket);
+        if (is_null($signature)) {
+            $signature = $this->auth->createReusableSignature($expired, $bucket);
+        }
         $fileSha = hash_file('sha1', $srcPath);
 
         $data = array(
@@ -428,7 +429,7 @@ class Api {
      * @return [type]                [description]
      */
     private function uploadBySlicing(
-            $bucket, $srcFpath,  $dstFpath, $bizAttr=null, $sliceSize=null, $insertOnly=null) {
+            $bucket, $srcFpath,  $dstFpath, $bizAttr=null, $sliceSize=null, $insertOnly=null, $signature = null) {
         $srcFpath = realpath($srcFpath);
         $fileSize = filesize($srcFpath);
         $dstFpath = $this->cosUrlEncode($dstFpath);
@@ -440,8 +441,9 @@ class Api {
         if ($expiration >= (time() + 10 * 24 * 60 * 60)) {
             $expiration = time() + 10 * 24 * 60 * 60;
         }
-        $signature = $this->auth->createReusableSignature($expiration, $bucket);
-
+        if (is_null($signature)) {
+            $signature = $this->auth->createReusableSignature($expiration, $bucket);
+        }
         $sliceUploading = new SliceUploading($this->timeout * 1000, self::MAX_RETRY_TIMES);
         for ($tryCount = 0; $tryCount < self::MAX_RETRY_TIMES; ++$tryCount) {
             if ($sliceUploading->initUploading(
