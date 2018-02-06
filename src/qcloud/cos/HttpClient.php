@@ -196,7 +196,7 @@ class HttpClient {
     }
 
     private function getUserAgent() {
-        return 'cos-php-sdk-' . Api::VERSION;
+        return 'cos-php-sdk-auth-' . Api::VERSION;
     }
 
     private function reset() {
