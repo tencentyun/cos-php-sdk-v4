@@ -9,9 +9,12 @@ cos-php-sdk：php sdk for [腾讯云对象存储服务](https://www.qcloud.com/p
 配置使用数组形式
 
 COS所在的区域(region)，对应关系如下：
-    华南  -> gz
-    华中  -> sh
-    华北  -> tj
+
+|地区|region|
+|:--:|:--:|
+|华南|gz|
+|华中(华东)|sh|
+|华北|tj|
 
 ```php
 $config = array(
