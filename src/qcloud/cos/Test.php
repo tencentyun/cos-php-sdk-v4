@@ -17,11 +17,11 @@ class Test extends \PHPUnit_Framework_TestCase {
             'app_id' => '1252448703',
             'secret_id' => getenv('COS_KEY'),
             'secret_key' => getenv('COS_SECRET'),
-            'region' => 'gz',   // bucket所属地域：华北 'tj' 华东 'sh' 华南 'gz'
+            'region' => getenv('COS_REGION'),   // bucket所属地域：华北 'tj' 华东 'sh' 华南 'gz'
             'timeout' => 60
         );
         $this->cosApi = new Api($config);
-        $this->bucket = 'testbucketv4';
+        $this->bucket = 'testbucketv4'. getsenv('COS_REGION');
         $this->cospath = '→↓←→↖↗↙↘! \"#$%&\'()*+,-./0123456789:;<=>@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
         $this->localpath = "111";
         $this->folder = "新建folder";
@@ -148,6 +148,7 @@ class Test extends \PHPUnit_Framework_TestCase {
         try {
             $this->cosApi->createFolder($this->bucket, $this->folder);
             $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
+            
             $this->assertFalse(false, $rt['code']);
         } catch (\Exception $e) {
             $this->assertFalse(true, $e);
