@@ -21,7 +21,7 @@ class Test extends \PHPUnit_Framework_TestCase {
             'timeout' => 60
         );
         $this->cosApi = new Api($config);
-        $this->bucket = 'testbucketv4'. getsenv('COS_REGION');
+        $this->bucket = 'testbucketv4'. getenv('COS_REGION');
         $this->cospath = '→↓←→↖↗↙↘! \"#$%&\'()*+,-./0123456789:;<=>@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
         $this->localpath = "111";
         $this->folder = "新建folder";
