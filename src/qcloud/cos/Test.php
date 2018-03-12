@@ -2,7 +2,7 @@
 
 namespace Qcloud\Cos\Tests;
 
-require('/../../../include.php');
+require('include.php');
 
 use QCloud\Cos\Api;
 
@@ -17,7 +17,7 @@ class Test extends \PHPUnit_Framework_TestCase {
             'app_id' => '1252448703',
             'secret_id' => getenv('COS_KEY'),
             'secret_key' => getenv('COS_SECRET'),
-            'region' => getenv('COS_REGION_V4'),   // bucket所属地域：华北 'tj' 华东 'sh' 华南 'gz'
+            'region' => 'tj',   // bucket所属地域：华北 'tj' 华东 'sh' 华南 'gz'
             'timeout' => 60
         );
         $this->cosApi = new Api($config);
@@ -81,7 +81,9 @@ class Test extends \PHPUnit_Framework_TestCase {
     }
     public function testCopyFile() {
         try {
+            $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->cosApi->upload($this->bucket, $this->localpath, $this->cospath);
+            $this->cosApi->delFile($this->bucket, $this->cospath . '_copy');
             $rt = $this->cosApi->copyFile($this->bucket, $this->cospath, $this->cospath . '_copy');
             $this->assertEquals(0, $rt['code']);
         } catch (\Exception $e) {
@@ -90,7 +92,9 @@ class Test extends \PHPUnit_Framework_TestCase {
     }
     public function testMoveFile() {
         try {
+            $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->cosApi->upload($this->bucket, $this->localpath, $this->cospath);
+            $this->cosApi->delFile($this->bucket, $this->cospath . '_move');
             $rt = $this->cosApi->moveFile($this->bucket, $this->cospath, $this->cospath . '_move');
             $this->assertEquals(0, $rt['code']);
         } catch (\Exception $e) {
