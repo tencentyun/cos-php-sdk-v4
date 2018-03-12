@@ -2,7 +2,7 @@
 
 namespace Qcloud\Cos\Tests;
 
-require('/../../../include.php');
+require('include.php');
 
 use QCloud\Cos\Api;
 
@@ -81,7 +81,9 @@ class Test extends \PHPUnit_Framework_TestCase {
     }
     public function testCopyFile() {
         try {
+            $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->cosApi->upload($this->bucket, $this->localpath, $this->cospath);
+            $this->cosApi->delFile($this->bucket, $this->cospath . '_copy');
             $rt = $this->cosApi->copyFile($this->bucket, $this->cospath, $this->cospath . '_copy');
             $this->assertEquals(0, $rt['code']);
         } catch (\Exception $e) {
@@ -90,7 +92,9 @@ class Test extends \PHPUnit_Framework_TestCase {
     }
     public function testMoveFile() {
         try {
+            $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->cosApi->upload($this->bucket, $this->localpath, $this->cospath);
+            $this->cosApi->delFile($this->bucket, $this->cospath . '_move');
             $rt = $this->cosApi->moveFile($this->bucket, $this->cospath, $this->cospath . '_move');
             $this->assertEquals(0, $rt['code']);
         } catch (\Exception $e) {
