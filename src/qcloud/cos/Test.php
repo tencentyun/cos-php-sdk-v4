@@ -17,7 +17,7 @@ class Test extends \PHPUnit_Framework_TestCase {
             'app_id' => '1252448703',
             'secret_id' => getenv('COS_KEY'),
             'secret_key' => getenv('COS_SECRET'),
-            'region' => 'tj',   // bucket所属地域：华北 'tj' 华东 'sh' 华南 'gz'
+            'region' => getenv('COS_REGION_V4'),   // bucket所属地域：华北 'tj' 华东 'sh' 华南 'gz'
             'timeout' => 60
         );
         $this->cosApi = new Api($config);
