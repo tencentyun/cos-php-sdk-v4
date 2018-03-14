@@ -38,6 +38,7 @@ class Test extends \PHPUnit_Framework_TestCase {
     public function testUploadFile() {
         try {
             $rt = $this->cosApi->upload($this->bucket, $this->localpath, $this->cospath);
+            $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->assertEquals(0, $rt['code']);
             $this->cosApi->delFile($this->bucket, $this->cospath);
         } catch (\Exception $e) {
@@ -50,6 +51,7 @@ class Test extends \PHPUnit_Framework_TestCase {
             file_put_contents($file,"12345",FILE_APPEND);
             $this->cosApi->upload($this->bucket, $this->localpath, $this->cospath);
             $rt = $this->cosApi->stat($this->bucket, $this->cospath);
+            $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->assertEquals(0, $rt['code']);
             $this->cosApi->delFile($this->bucket, $this->cospath);
         } catch (\Exception $e) {
@@ -60,6 +62,7 @@ class Test extends \PHPUnit_Framework_TestCase {
         try {
             $this->cosApi->upload($this->bucket, $this->localpath, $this->cospath);
             $rt = $this->cosApi->download($this->bucket, $this->cospath, $this->localpath);
+            $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->assertEquals(0, $rt['code']);
             $this->cosApi->delFile($this->bucket, $this->cospath);
         } catch (\Exception $e) {
@@ -77,6 +80,7 @@ class Test extends \PHPUnit_Framework_TestCase {
                 'Content-Language' => 'ch',
             );
             $rt = $this->cosApi->update($this->bucket, $this->cospath, $bizAttr, $authority, $customerHeaders);
+            $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->assertEquals(0, $rt['code']);
             $this->cosApi->delFile($this->bucket, $this->cospath);
         } catch (\Exception $e) {
@@ -121,6 +125,7 @@ class Test extends \PHPUnit_Framework_TestCase {
     public function testCreateFolder() {
         try {
             $rt = $this->cosApi->createFolder($this->bucket, $this->folder);
+            $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
             $this->assertEquals(0, $rt['code']);
             $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
         } catch (\Exception $e) {
@@ -132,6 +137,7 @@ class Test extends \PHPUnit_Framework_TestCase {
         try {
             $this->cosApi->createFolder($this->bucket, $this->folder);
             $rt = $this->cosApi->listFolder($this->bucket, $this->folder);
+            $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
             $this->assertEquals(0, $rt['code']);
             $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
         } catch (\Exception $e) {
@@ -144,6 +150,7 @@ class Test extends \PHPUnit_Framework_TestCase {
             $bizAttr = "";
             $this->cosApi->createFolder($this->bucket, $this->folder);
             $rt = $this->cosApi->updateFolder($this->bucket, $this->folder, $bizAttr);
+            $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
             $this->assertEquals(0, $rt['code']);
             $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
         } catch (\Exception $e) {
@@ -154,6 +161,7 @@ class Test extends \PHPUnit_Framework_TestCase {
         try {
             $this->cosApi->createFolder($this->bucket, $this->folder);
             $rt = $this->cosApi->statFolder($this->bucket, $this->folder);
+            $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
             $this->assertEquals(0, $rt['code']);
             $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
         } catch (\Exception $e) {
