@@ -40,7 +40,6 @@ class Test extends \PHPUnit_Framework_TestCase {
             $rt = $this->cosApi->upload($this->bucket, $this->localpath, $this->cospath);
             $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->assertEquals(0, $rt['code']);
-            $this->cosApi->delFile($this->bucket, $this->cospath);
         } catch (\Exception $e) {
             $this->assertFalse(true, $e);
         }
@@ -64,7 +63,6 @@ class Test extends \PHPUnit_Framework_TestCase {
             $rt = $this->cosApi->download($this->bucket, $this->cospath, $this->localpath);
             $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->assertEquals(0, $rt['code']);
-            $this->cosApi->delFile($this->bucket, $this->cospath);
         } catch (\Exception $e) {
             $this->assertFalse(true, $e);
         }
@@ -82,16 +80,13 @@ class Test extends \PHPUnit_Framework_TestCase {
             $rt = $this->cosApi->update($this->bucket, $this->cospath, $bizAttr, $authority, $customerHeaders);
             $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->assertEquals(0, $rt['code']);
-            $this->cosApi->delFile($this->bucket, $this->cospath);
         } catch (\Exception $e) {
             $this->assertFalse(true, $e);
         }
     }
     public function testCopyFile() {
         try {
-            $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->cosApi->upload($this->bucket, $this->localpath, $this->cospath);
-            $this->cosApi->delFile($this->bucket, $this->cospath . '_copy');
             $rt = $this->cosApi->copyFile($this->bucket, $this->cospath, $this->cospath . '_copy');
             $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->cosApi->delFile($this->bucket, $this->cospath . '_copy');
@@ -102,9 +97,7 @@ class Test extends \PHPUnit_Framework_TestCase {
     }
     public function testMoveFile() {
         try {
-            $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->cosApi->upload($this->bucket, $this->localpath, $this->cospath);
-            $this->cosApi->delFile($this->bucket, $this->cospath . '_move');
             $rt = $this->cosApi->moveFile($this->bucket, $this->cospath, $this->cospath . '_move');
             $this->cosApi->delFile($this->bucket, $this->cospath);
             $this->cosApi->delFile($this->bucket, $this->cospath . '_move');
@@ -127,7 +120,6 @@ class Test extends \PHPUnit_Framework_TestCase {
             $rt = $this->cosApi->createFolder($this->bucket, $this->folder);
             $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
             $this->assertEquals(0, $rt['code']);
-            $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
         } catch (\Exception $e) {
             $this->assertFalse(true, $e);
         }
@@ -139,7 +131,6 @@ class Test extends \PHPUnit_Framework_TestCase {
             $rt = $this->cosApi->listFolder($this->bucket, $this->folder);
             $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
             $this->assertEquals(0, $rt['code']);
-            $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
         } catch (\Exception $e) {
             $this->assertFalse(true, $e);
         }
@@ -152,7 +143,6 @@ class Test extends \PHPUnit_Framework_TestCase {
             $rt = $this->cosApi->updateFolder($this->bucket, $this->folder, $bizAttr);
             $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
             $this->assertEquals(0, $rt['code']);
-            $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
         } catch (\Exception $e) {
             $this->assertFalse(true, $e);
         }
@@ -163,7 +153,6 @@ class Test extends \PHPUnit_Framework_TestCase {
             $rt = $this->cosApi->statFolder($this->bucket, $this->folder);
             $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
             $this->assertEquals(0, $rt['code']);
-            $rt = $this->cosApi->delFolder($this->bucket, $this->folder);
         } catch (\Exception $e) {
             $this->assertFalse(true, $e);
         }
