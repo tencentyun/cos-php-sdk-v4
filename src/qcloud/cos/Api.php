@@ -4,7 +4,7 @@ namespace QCloud\Cos;
 
 class Api {
     //版本
-    const VERSION = 'v4.3.10';
+    const VERSION = 'v4.3.11';
     //计算sign签名的时间参数
     const EXPIRED_SECONDS = 180;
     //1M
