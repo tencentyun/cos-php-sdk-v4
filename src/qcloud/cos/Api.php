@@ -201,7 +201,7 @@ class Api {
         }
         return array(
             'code' => self::COSAPI_SUCCESS,
-            'message' => '',
+            'message' => 'SUCCESS',
             'data' => array()
         );
     }
