@@ -1,7 +1,19 @@
 cos-php-sdk：php sdk for [腾讯云对象存储服务](https://www.qcloud.com/product/cos.html)
 ===================================================================================================
 
-### 安装（直接下载源码集成）
+### 安装
+
+composer安装或直接下载源码两种方式任选一种即可。
+
+#### 通过composer安装
+推荐使用 [composer](https://getcomposer.org/) 管理依赖。
+
+运行如下命令即可：
+```sh
+composer require qcloud/cos-sdk-v4
+```
+
+#### 直接下载源码集成
 若出现下载失败的问题，请将代码升级到最新的版本(>=v4.3.7)。
 直接从[github](https://github.com/tencentyun/cos-php-sdk-v4)下载源码，然后在您的程序中加载cos-php-sdk-v4/include.php就可以了。
 
