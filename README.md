@@ -1,8 +1,8 @@
 cos-php-sdk：php sdk for [腾讯云对象存储服务](https://www.qcloud.com/product/cos.html)
 ===================================================================================================
 
-## 已弃用 - 请使用 cos-php-sdk-v5
-SDK 依赖的 JSON API 已弃用，请使用基于 XML API 的 [cos-php-sdk-v5](https://github.com/tencentyun/cos-php-sdk-v5)。 
+## 已弃用 - 请升级到 cos-php-sdk-v5
+SDK 依赖的 JSON API 已弃用，请直接使用基于 XML API 的 [cos-php-sdk-v5](https://github.com/tencentyun/cos-php-sdk-v5)，或者参照 [指引](https://github.com/tencentyun/qcloud-documents/blob/master/product/%E5%AD%98%E5%82%A8%E4%B8%8ECDN/%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%204.0/SDK%E6%96%87%E6%A1%A3/PHP%20SDK/%E5%8D%87%E7%BA%A7%E5%88%B0%20PHP%20SDK%20V5.md) 升级到新版SDK。
 
 ### 安装（直接下载源码集成）
 若出现下载失败的问题，请将代码升级到最新的版本(>=v4.3.7)。
